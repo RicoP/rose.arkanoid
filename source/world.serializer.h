@@ -10,6 +10,55 @@
 //    rose.parser -I world.h -O world.serializer.h
 ///////////////////////////////////////////////////////////////////
 
+enum class                   WorldState;
+const char * to_string(const WorldState &);
+namespace rose {
+  namespace ecs {
+    void      deserialize(WorldState &o, IDeserializer &s);
+    void        serialize(WorldState &o, ISerializer &s);
+  }
+  template<>
+  struct type_id<WorldState> {
+    inline static hash_value VALUE = 3382719438552353832ULL;
+  };
+  hash_value         hash(const WorldState &o);
+  void construct_defaults(      WorldState &o); //implement me
+}
+
+
+namespace rose {
+  namespace ecs {
+    void        serialize(Color &o, ISerializer &s);
+    void      deserialize(Color &o, IDeserializer &s);
+  }
+  hash_value         hash(const Color &o);
+  template<>
+  struct type_id<Color> {
+    inline static hash_value VALUE = 11375897551430744876ULL;
+  };
+  void construct_defaults(      Color &o); // implement me
+}
+bool operator==(const Color &lhs, const Color &rhs);
+bool operator!=(const Color &lhs, const Color &rhs);
+
+
+struct                Stone;
+namespace rose {
+  namespace ecs {
+    void        serialize(Stone &o, ISerializer &s);
+    void      deserialize(Stone &o, IDeserializer &s);
+  }
+  hash_value         hash(const Stone &o);
+  template<>
+  struct type_id<Stone> {
+    inline static hash_value VALUE = 16848626130602277812ULL;
+  };
+  void construct_defaults(      Stone &o); // implement me
+}
+bool operator==(const Stone &lhs, const Stone &rhs);
+bool operator!=(const Stone &lhs, const Stone &rhs);
+
+
 namespace rose {
   namespace ecs {
     void        serialize(Vector3 &o, ISerializer &s);
@@ -35,7 +84,7 @@ namespace rose {
   hash_value         hash(const World &o);
   template<>
   struct type_id<World> {
-    inline static hash_value VALUE = 2258745035795743098ULL;
+    inline static hash_value VALUE = 830932191923771514ULL;
   };
   void construct_defaults(      World &o); // implement me
 }
@@ -94,6 +143,158 @@ bool operator!=(const World &lhs, const World &rhs);
     }
     #endif
   
+const char * to_string(const WorldState & e) {
+    switch(e) {
+        case WorldState::NewGame: return "NewGame";
+        case WorldState::Running: return "Running";
+        default: return "<UNKNOWN>";
+    }
+}
+void rose::ecs::serialize(WorldState& o, ISerializer& s) {
+  switch (o) {
+    case WorldState::NewGame: {
+      char str[] = "NewGame";
+      serialize(str, s);
+      break;
+    }
+    case WorldState::Running: {
+      char str[] = "Running";
+      serialize(str, s);
+      break;
+    }
+    default: /* unknown */ break;
+  }
+}
+void rose::ecs::deserialize(WorldState& o, IDeserializer& s) {
+  char str[64];
+  deserialize(str, s);
+  rose::hash_value h = rose::hash(str);
+  switch (h) {
+  case rose::hash("NewGame"): o = WorldState::NewGame; break;
+  case rose::hash("Running"): o = WorldState::Running; break;
+  default: /*unknown value*/ break;
+  }
+}
+rose::hash_value       rose::hash(const WorldState& o) {
+  return static_cast<rose::hash_value>(o);
+}
+
+///////////////////////////////////////////////////////////////////
+//  struct Color
+///////////////////////////////////////////////////////////////////
+bool operator==(const Color &lhs, const Color &rhs) {
+  return
+    rose_parser_equals(lhs.r, rhs.r) &&
+    rose_parser_equals(lhs.g, rhs.g) &&
+    rose_parser_equals(lhs.b, rhs.b) &&
+    rose_parser_equals(lhs.a, rhs.a) ;
+}
+
+bool operator!=(const Color &lhs, const Color &rhs) {
+  return
+    !rose_parser_equals(lhs.r, rhs.r) ||
+    !rose_parser_equals(lhs.g, rhs.g) ||
+    !rose_parser_equals(lhs.b, rhs.b) ||
+    !rose_parser_equals(lhs.a, rhs.a) ;
+}
+
+void rose::ecs::serialize(Color &o, ISerializer &s) {
+  if(s.node_begin("Color", rose::hash("Color"), &o)) {
+    s.key("r");
+    serialize(o.r, s);
+    s.key("g");
+    serialize(o.g, s);
+    s.key("b");
+    serialize(o.b, s);
+    s.key("a");
+    serialize(o.a, s);
+    s.node_end();
+  }
+  s.end();
+}
+
+void rose::ecs::deserialize(Color &o, IDeserializer &s) {
+  //implement me
+  //construct_defaults(o);
+
+  while (s.next_key()) {
+    switch (s.hash_key()) {
+      case rose::hash("r"):
+        deserialize(o.r, s);
+        break;
+      case rose::hash("g"):
+        deserialize(o.g, s);
+        break;
+      case rose::hash("b"):
+        deserialize(o.b, s);
+        break;
+      case rose::hash("a"):
+        deserialize(o.a, s);
+        break;
+      default: s.skip_key(); break;
+    }
+  }
+}
+
+rose::hash_value rose::hash(const Color &o) {
+  rose::hash_value h = rose::hash(o.r);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.g);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.b);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.a);
+  return h;
+}
+///////////////////////////////////////////////////////////////////
+//  struct Stone
+///////////////////////////////////////////////////////////////////
+bool operator==(const Stone &lhs, const Stone &rhs) {
+  return
+    rose_parser_equals(lhs.position, rhs.position) &&
+    rose_parser_equals(lhs.color, rhs.color) ;
+}
+
+bool operator!=(const Stone &lhs, const Stone &rhs) {
+  return
+    !rose_parser_equals(lhs.position, rhs.position) ||
+    !rose_parser_equals(lhs.color, rhs.color) ;
+}
+
+void rose::ecs::serialize(Stone &o, ISerializer &s) {
+  if(s.node_begin("Stone", rose::hash("Stone"), &o)) {
+    s.key("position");
+    serialize(o.position, s);
+    s.key("color");
+    serialize(o.color, s);
+    s.node_end();
+  }
+  s.end();
+}
+
+void rose::ecs::deserialize(Stone &o, IDeserializer &s) {
+  //implement me
+  //construct_defaults(o);
+
+  while (s.next_key()) {
+    switch (s.hash_key()) {
+      case rose::hash("position"):
+        deserialize(o.position, s);
+        break;
+      case rose::hash("color"):
+        deserialize(o.color, s);
+        break;
+      default: s.skip_key(); break;
+    }
+  }
+}
+
+rose::hash_value rose::hash(const Stone &o) {
+  rose::hash_value h = rose::hash(o.position);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.color);
+  return h;
+}
 ///////////////////////////////////////////////////////////////////
 //  struct Vector3
 ///////////////////////////////////////////////////////////////////
@@ -160,7 +361,9 @@ bool operator==(const World &lhs, const World &rhs) {
     rose_parser_equals(lhs.cubePosition, rhs.cubePosition) &&
     rose_parser_equals(lhs.ballPosition, rhs.ballPosition) &&
     rose_parser_equals(lhs.ballVelocity, rhs.ballVelocity) &&
-    rose_parser_equals(lhs.points, rhs.points) ;
+    rose_parser_equals(lhs.points, rhs.points) &&
+    rose_parser_equals(lhs.state, rhs.state) &&
+    rose_parser_equals(lhs.stones, rhs.stones) ;
 }
 
 bool operator!=(const World &lhs, const World &rhs) {
@@ -168,7 +371,9 @@ bool operator!=(const World &lhs, const World &rhs) {
     !rose_parser_equals(lhs.cubePosition, rhs.cubePosition) ||
     !rose_parser_equals(lhs.ballPosition, rhs.ballPosition) ||
     !rose_parser_equals(lhs.ballVelocity, rhs.ballVelocity) ||
-    !rose_parser_equals(lhs.points, rhs.points) ;
+    !rose_parser_equals(lhs.points, rhs.points) ||
+    !rose_parser_equals(lhs.state, rhs.state) ||
+    !rose_parser_equals(lhs.stones, rhs.stones) ;
 }
 
 void rose::ecs::serialize(World &o, ISerializer &s) {
@@ -181,6 +386,10 @@ void rose::ecs::serialize(World &o, ISerializer &s) {
     serialize(o.ballVelocity, s);
     s.key("points");
     serialize(o.points, s);
+    s.key("state");
+    serialize(o.state, s);
+    s.key("stones");
+    serialize(o.stones, s);
     s.node_end();
   }
   s.end();
@@ -204,6 +413,12 @@ void rose::ecs::deserialize(World &o, IDeserializer &s) {
       case rose::hash("points"):
         deserialize(o.points, s);
         break;
+      case rose::hash("state"):
+        deserialize(o.state, s);
+        break;
+      case rose::hash("stones"):
+        deserialize(o.stones, s);
+        break;
       default: s.skip_key(); break;
     }
   }
@@ -217,6 +432,10 @@ rose::hash_value rose::hash(const World &o) {
   h ^= rose::hash(o.ballVelocity);
   h = rose::xor64(h);
   h ^= rose::hash(o.points);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.state);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.stones);
   return h;
 }
 

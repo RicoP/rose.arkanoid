@@ -9,6 +9,7 @@
 #include <components/components.h>
 #include <components/components_ser.h>
 #include <serializer/imguiserializer.h>
+#include <algorithm>
 
 #include "world.h"
 #define IMPL_SERIALIZER
@@ -46,6 +47,16 @@ static Vector3 & operator+=(Vector3 & lhs, Vector3 rhs) {
     return lhs;
 }
 
+bool equalish(Vector3 lhs, Vector3 rhs) {
+    float dx = lhs.x - rhs.x;
+    float dy = lhs.y - rhs.y;
+    float dz = lhs.z - rhs.z;
+    if(dx < 0) dx = -dx;
+    if(dy < 0) dy = -dy;
+    if(dz < 0) dz = -dz;
+
+    return dx < 0.001f && dy < 0.001f && dz < 0.001f;
+}
 
 ROSE_EXPORT void postload() {
     // Define the camera to look into our 3d world
@@ -90,6 +101,65 @@ void update() {
         }
     }
 
+    if(ImGui::Button("New Stone")) {
+        float x = -10;
+        float y = 17;
+        float xyi = 2;
+        int i = 0;
+
+        int rows_max = 5;
+        int row = 0;
+
+        Color colors[] = {RED,BLUE,YELLOW, ORANGE,GREEN};
+
+        Stone stone { {x, y, 0} };
+        for(;;) {
+            if(i < world.stones.size()) {
+                if(equalish(world.stones[i].position, stone.position)) {
+                    i++;
+                    stone.position.x += xyi;
+                    if(stone.position.x > 10) {
+                        stone.position.x = -10;
+                        stone.position.y -= xyi;
+                        row++;
+                        if(row == rows_max) break;
+                        stone.color = colors[row];
+                    }
+                    continue;
+                }
+            }
+            break;
+        }
+
+        if(row != rows_max) {
+            world.stones.push_back(stone);
+        }
+        std::sort(world.stones.begin(), world.stones.end(), [](auto & lhs, auto & rhs) {
+            if(lhs.position.y == rhs.position.y) {
+                return lhs.position.x < rhs.position.x;
+            }
+            return lhs.position.y > rhs.position.y;
+        });
+        
+    }
+
+    if(ImGui::Button("Clear Stone")) {
+        world.stones.clear();
+    }
+    if(ImGui::Button("Safe Game")) {
+        rose::io::json::write(world, rose::io::Folder::Working, "game_state.json");
+    }
+    /*
+    int i = 0;
+    for(auto & stone : world.stones) {
+        ImGui::PushID(i++);
+        ImGui::LabelText("Stone", "ID: %d, Pos: (%g, %g)", i, stone.position.x, stone.position.y);
+        ImGui::PopID();
+    }
+    */
+
+    ImGui::Separator();
+
     ImguiSerializer serializer;
     rose::ecs::serialize(world, serializer);
 }
@@ -109,10 +179,18 @@ ROSE_EXPORT void draw() {
 
         BeginMode3D(camera);
         {
+            //Paddle
             DrawCubeWiresOutline(world.cubePosition, 3.0f, 1.0f, 1.0f, YELLOW, MAROON);
 
+            //Ball
             DrawSphere(world.ballPosition, .5f, RED);
+
+            //Stones
+            for(auto & stone : world.stones) {
+                DrawCubeWiresOutline(stone.position, 1.0f, 1.0f, 1.0f, stone.color, BLACK);
+            }
             
+            //Borders
             DrawCubeWiresOutline({-13.5f, .0f, .0f,}, 1.0f, 100.0f, 1.0f, GRAY, BLACK);
             DrawCubeWiresOutline({13.5f, .0f, .0f,}, 1.0f, 100.0f, 1.0f, GRAY, BLACK);
             DrawCubeWiresOutline({.0f, 20.0f, .0f,}, 100.0f, 1.0f, 1.0f, GRAY, BLACK);
@@ -140,6 +218,5 @@ ROSE_EXPORT void event(const rose::Event & ev) {
 
 ROSE_EXPORT void ui() {
 }
-
 
 #include <rose/engine.hpp>
