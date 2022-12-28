@@ -3,6 +3,9 @@
 *.pdb
 *.exp
 
+#Imgui
+imgui.ini
+
 # Prerequisites
 *.d
 
