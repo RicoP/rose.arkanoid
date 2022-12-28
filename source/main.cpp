@@ -8,17 +8,15 @@
 #include <components/padevents.h>
 #include <components/components.h>
 #include <components/components_ser.h>
+#include <serializer/imguiserializer.h>
 
-static PadEventButton buttons = PadEventButton::NONE;
+#include "world.h"
+#define IMPL_SERIALIZER
+#include "world.serializer.h"
 
+World world;
 Camera3D camera = { 0 };
-
-Vector3 cubePosition = { 0.0f, 0.0f, 0.0f };
-Vector3 ballPosition = { 0.0f, 1.0f, 0.0f };
-Vector3 ballVelocity = { 1.0f, 1.0f, 0.0f };
-
 float ballSpeed = .3f;
-int points = 0;
 
 static Vector3 operator*(Vector3 lhs, float rhs) {
     lhs.x *= rhs;
@@ -57,44 +55,43 @@ ROSE_EXPORT void postload() {
     camera.fovy = 45.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;                   // Camera mode type
     SetCameraMode(camera, CAMERA_FREE); // Set a free camera mode
+
+    rose::io::json::read<World>(world, rose::io::Folder::Working, "game_state.json");
 }
 
 ROSE_EXPORT void predestroy() {
+    rose::io::json::write(world, rose::io::Folder::Working, "game_state.json");
 }
 
 void update() {
-    cubePosition.x += rose::input::stick().x;
-    ballPosition += ballVelocity * ballSpeed;
+    world.cubePosition.x += rose::input::stick().x;
+    world.ballPosition += world.ballVelocity * ballSpeed;
 
-    #define VEC_FMT(v) "(%g, %g, %g)", v.x, v.y, v.z
-    ImGui::LabelText("Cube Pos", VEC_FMT(cubePosition));
-    ImGui::LabelText("Ball Pos", VEC_FMT(ballPosition));
-    #undef VEC_FMT
-    ImGui::DragFloat("Ball Speed", &ballSpeed, .05f, .01f, 1);
-    ImGui::LabelText("Points", "%d", points);
+    if(world.cubePosition.x < -11.5) world.cubePosition.x = -11.5;
+    if(world.cubePosition.x > 11.5) world.cubePosition.x = 11.5;
 
-    if(cubePosition.x < -11.5) cubePosition.x = -11.5;
-    if(cubePosition.x > 11.5) cubePosition.x = 11.5;
-
-    if(ballPosition.x < -13) ballVelocity.x *= -1;
-    if(ballPosition.x > 13) ballVelocity.x *= -1;
-    if(ballPosition.y > 20) ballVelocity.y *= -1;
+    if(world.ballPosition.x < -13) world.ballVelocity.x *= -1;
+    if(world.ballPosition.x > 13) world.ballVelocity.x *= -1;
+    if(world.ballPosition.y > 20) world.ballVelocity.y *= -1;
     
-    if(ballPosition.y < 0) {
-        points -= 1;
+    if(world.ballPosition.y < 0) {
+        world.points -= 1;
 
-        ballPosition = cubePosition + Vector3 {0.0f, 1.0f, 0.0f};
+        world.ballPosition = world.cubePosition + Vector3 {0.0f, 1.0f, 0.0f};
         auto rand = rose::hash_from_clock();
         float vx = rose::nextf(rand) * 2 - 1;
-        ballVelocity = Vector3 {vx, 1.0, 0};
+        world.ballVelocity = Vector3 {vx, 1.0, 0};
     }
-    else if(ballPosition.y < 1 && ballVelocity.y < 0) {
-        if(ballPosition.x > cubePosition.x - 2 && ballPosition.x < cubePosition.x + 2) {
-            ballVelocity.y *= -1;
-            Vector3 vec_dif = ballPosition - cubePosition;
-            ballVelocity.x += vec_dif.x * .25f;
+    else if(world.ballPosition.y < 1 && world.ballVelocity.y < 0) {
+        if(world.ballPosition.x > world.cubePosition.x - 2 && world.ballPosition.x < world.cubePosition.x + 2) {
+            world.ballVelocity.y *= -1;
+            Vector3 vec_dif = world.ballPosition - world.cubePosition;
+            world.ballVelocity.x += vec_dif.x * .25f;
         }
     }
+
+    ImguiSerializer serializer;
+    rose::ecs::serialize(world, serializer);
 }
 
 void DrawCubeWiresOutline(Vector3 position, float width, float height, float length, Color colorA, Color colorB)
@@ -104,14 +101,7 @@ void DrawCubeWiresOutline(Vector3 position, float width, float height, float len
 }
 
 ROSE_EXPORT void draw() {
-    //ImGui::Button("Hello");
-    //if(!!(buttons & PadEventButton::North)) ImGui::Button("Y");
-    //if(!!(buttons & PadEventButton::West)) ImGui::Button("X");
-    //if(!!(buttons & PadEventButton::South)) ImGui::Button("A");
-    //if(!!(buttons & PadEventButton::East)) ImGui::Button("B");
-
     update();
-
 
     BeginDrawing();
     {
@@ -119,9 +109,9 @@ ROSE_EXPORT void draw() {
 
         BeginMode3D(camera);
         {
-            DrawCubeWiresOutline(cubePosition, 3.0f, 1.0f, 1.0f, YELLOW, MAROON);
+            DrawCubeWiresOutline(world.cubePosition, 3.0f, 1.0f, 1.0f, YELLOW, MAROON);
 
-            DrawSphere(ballPosition, .5f, RED);
+            DrawSphere(world.ballPosition, .5f, RED);
             
             DrawCubeWiresOutline({-13.5f, .0f, .0f,}, 1.0f, 100.0f, 1.0f, GRAY, BLACK);
             DrawCubeWiresOutline({13.5f, .0f, .0f,}, 1.0f, 100.0f, 1.0f, GRAY, BLACK);
@@ -146,11 +136,10 @@ ROSE_EXPORT void draw() {
 }
 
 ROSE_EXPORT void event(const rose::Event & ev) {
-    buttons = PadEventButton::NONE;
-    if(auto pad = ev.get<PadEvent>()) {
-        buttons |= pad->buttons;
-    }
 }
 
 ROSE_EXPORT void ui() {
 }
+
+
+#include <rose/engine.hpp>
