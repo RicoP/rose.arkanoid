@@ -2,6 +2,7 @@
 #include <rlgl.h>
 #include <rose.h>
 #include <rose/event.h>
+#include <rose/hash.h>
 #include <roseio.h>
 #include <imgui.h>
 #include <components/padevents.h>
@@ -33,6 +34,13 @@ static Vector3 operator+(Vector3 lhs, Vector3  rhs) {
     return lhs;
 }
 
+static Vector3 operator-(Vector3 lhs, Vector3  rhs) {
+    lhs.x -= rhs.x;
+    lhs.y -= rhs.y;
+    lhs.z -= rhs.z;
+    return lhs;
+}
+
 static Vector3 & operator+=(Vector3 & lhs, Vector3 rhs) {
     lhs.x += rhs.x;
     lhs.y += rhs.y;
@@ -59,10 +67,11 @@ void update() {
     ballPosition += ballVelocity * ballSpeed;
 
     #define VEC_FMT(v) "(%g, %g, %g)", v.x, v.y, v.z
-    ImGui::LabelText("Cube Pos: ", VEC_FMT(cubePosition));
-    ImGui::LabelText("Ball Pos: ", VEC_FMT(ballPosition));
+    ImGui::LabelText("Cube Pos", VEC_FMT(cubePosition));
+    ImGui::LabelText("Ball Pos", VEC_FMT(ballPosition));
     #undef VEC_FMT
     ImGui::DragFloat("Ball Speed", &ballSpeed, .05f, .01f, 1);
+    ImGui::LabelText("Points", "%d", points);
 
     if(cubePosition.x < -11.5) cubePosition.x = -11.5;
     if(cubePosition.x > 11.5) cubePosition.x = 11.5;
@@ -75,16 +84,17 @@ void update() {
         points -= 1;
 
         ballPosition = cubePosition + Vector3 {0.0f, 1.0f, 0.0f};
-        ballVelocity = Vector3 {1,1.0};
+        auto rand = rose::hash_from_clock();
+        float vx = rose::nextf(rand) * 2 - 1;
+        ballVelocity = Vector3 {vx, 1.0, 0};
     }
     else if(ballPosition.y < 1 && ballVelocity.y < 0) {
-        if(ballPosition.x > cubePosition.x - 1.5f && ballPosition.x < cubePosition.x + 1.5f) {
+        if(ballPosition.x > cubePosition.x - 2 && ballPosition.x < cubePosition.x + 2) {
             ballVelocity.y *= -1;
+            Vector3 vec_dif = ballPosition - cubePosition;
+            ballVelocity.x += vec_dif.x * .25f;
         }
     }
-    //ballVelocity.y *= -1;
-
-
 }
 
 void DrawCubeWiresOutline(Vector3 position, float width, float height, float length, Color colorA, Color colorB)
