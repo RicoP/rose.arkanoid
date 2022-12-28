@@ -45,29 +45,31 @@
         {
             "type": "shell",
             "label": "Rose Clean",
-            "command": "echo",
+            "command": "Remove-Item",
             "args": [
-                "Hello",
+                "*.obj,",
+                "*.pdb",
             ],
             "options": {
                 "cwd": "${fileDirname}\\.."
             },
+            "dependsOn": ["Rose Compile"],
             "group": {
                 "kind": "build",
             }
         },
-
+        
         {
             "type": "shell",
             "label": "Rose Build",
             "command": "echo",
             "args": [
-                "Build",
+                "Build Finished",
             ],
             "options": {
                 "cwd": "${fileDirname}\\.."
             },
-            "dependsOn": ["Rose Compile", "Rose Clean"],
+            "dependsOn": ["Rose Clean"],
             "group": {
                 "kind": "build",
                 "isDefault": true
