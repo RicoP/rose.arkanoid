@@ -5,6 +5,8 @@
 
 #game state
 game_state.json
+quicksafe.json
+roseoptions.json
 
 #Imgui
 imgui.ini
