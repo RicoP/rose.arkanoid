@@ -22,6 +22,7 @@ World world;
 Camera3D camera = { 0 };
 float ballSpeed = .3f;
 float ballRadius = .5f;
+Texture2D cubeTexture;
 
 static Vector3 operator*(Vector3 lhs, float rhs) {
     lhs.x *= rhs;
@@ -89,6 +90,17 @@ ROSE_EXPORT void postload() {
     camera.fovy = 45.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;                   // Camera mode type
     SetCameraMode(camera, CAMERA_FREE); // Set a free camera mode
+
+    // Create a small texture in memory
+    Image image = GenImageGradientRadial(64, 64, .22f, WHITE, {200,200,200,255});
+    
+    // Load the texture from image data
+    cubeTexture = LoadTextureFromImage(image);
+
+    SetTextureFilter(cubeTexture, TEXTURE_FILTER_POINT);
+
+    // Unload the image data to free memory
+    UnloadImage(image);
 
     rose::io::json::read<World>(world, rose::io::Folder::Working, "game_state.json");
 }
@@ -167,10 +179,9 @@ void update() {
     }
 }
 
-void DrawCubeWiresOutline(Vector3 position, float width, float height, float length, Color colorA, Color colorB)
+void DrawCubeWiresOutline(Vector3 position, float width, float height, float length, Color color)
 {
-    DrawCube(position, width,height, length, colorA);
-    DrawCubeWires(position, width+.02f,height+.02f, length+.02f, colorB);
+    DrawCubeTexture(cubeTexture, position, width, height, length, color);
 }
 
 ROSE_EXPORT void draw() {
@@ -256,20 +267,20 @@ ROSE_EXPORT void draw() {
         BeginMode3D(camera);
         {
             //Paddle
-            DrawCubeWiresOutline(world.cubePosition, 3.0f, 1.0f, 1.0f, YELLOW, MAROON);
+            DrawCubeWiresOutline(world.cubePosition, 3.0f, 1.0f, 1.0f, YELLOW);
 
             //Ball
             DrawSphere(world.ballPosition, ballRadius, RED);
 
             //Stones
             for(auto & stone : world.stones) {
-                DrawCubeWiresOutline(stone.position, stone.size.x, stone.size.y, stone.size.z, stone.color, BLACK);
+                DrawCubeWiresOutline(stone.position, stone.size.x, stone.size.y, stone.size.z, stone.color);
             }
             
             //Borders
-            DrawCubeWiresOutline({-14.0f,   .0f, .0f,}, 1.0f, 100.0f, 1.0f, GRAY, BLACK);
-            DrawCubeWiresOutline({ 14.0f,   .0f, .0f,}, 1.0f, 100.0f, 1.0f, GRAY, BLACK);
-            DrawCubeWiresOutline({   .0f, 24.0f, .0f,}, 29.0f, 1.0f, 1.0f, GRAY, BLACK);
+            DrawCubeWiresOutline({-14.0f,   .0f, .0f,}, 1.0f, 100.0f, 1.0f, GRAY);
+            DrawCubeWiresOutline({ 14.0f,   .0f, .0f,}, 1.0f, 100.0f, 1.0f, GRAY);
+            DrawCubeWiresOutline({   .0f, 24.0f, .0f,}, 29.0f, 1.0f, 1.0f, GRAY);
 
             DrawGrid(10, 1.0f);
         }
