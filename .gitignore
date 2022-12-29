@@ -3,6 +3,9 @@
 *.pdb
 *.exp
 
+#game state
+game_state.json
+
 #Imgui
 imgui.ini
 
