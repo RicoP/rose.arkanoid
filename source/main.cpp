@@ -111,7 +111,14 @@ void collisionCheck() {
 
         if(c2CircletoAABB(pBall, pStone)) {
             stone.state = StoneState::Dead;
-            world.ballVelocity.y *= -1;
+
+            float dx = fabsf(p.x - pBall.p.x);
+            float dy = fabsf(p.y - pBall.p.y);
+
+            if(dy > dx)
+                world.ballVelocity.y *= -1;
+            else
+                world.ballVelocity.x *= -1;
             break;
         }
     }
@@ -138,12 +145,12 @@ void update() {
     world.cubePosition.x += rose::input::stick().x;
     world.ballPosition += world.ballVelocity * ballSpeed;
 
-    if(world.cubePosition.x < -11.5) world.cubePosition.x = -11.5;
-    if(world.cubePosition.x > 11.5) world.cubePosition.x = 11.5;
+    if(world.cubePosition.x < -12) world.cubePosition.x = -12;
+    if(world.cubePosition.x > 12)  world.cubePosition.x =  12;
 
     if(world.ballPosition.x < -13) world.ballVelocity.x *= -1;
-    if(world.ballPosition.x > 13) world.ballVelocity.x *= -1;
-    if(world.ballPosition.y > 20) world.ballVelocity.y *= -1;
+    if(world.ballPosition.x >  13) world.ballVelocity.x *= -1;
+    if(world.ballPosition.y >  23) world.ballVelocity.y *= -1;
     
     if(world.ballPosition.y < 0) {
         world.points -= 1;
@@ -163,7 +170,7 @@ void update() {
 void DrawCubeWiresOutline(Vector3 position, float width, float height, float length, Color colorA, Color colorB)
 {
     DrawCube(position, width,height, length, colorA);
-    DrawCubeWires(position, width+.01f,height+.01f, length+.01f, colorB);
+    DrawCubeWires(position, width+.02f,height+.02f, length+.02f, colorB);
 }
 
 ROSE_EXPORT void draw() {
@@ -220,8 +227,12 @@ ROSE_EXPORT void draw() {
         world.stones.clear();
     }
 
-    if(ImGui::Button("Safe Game")) {
-        rose::io::json::write(world, rose::io::Folder::Working, "game_state.json");
+    if(ImGui::Button("Quicksafe")) {
+        rose::io::json::write(world, rose::io::Folder::Working, "quicksafe.json");
+    }
+
+    if(ImGui::Button("Quickload")) {
+        rose::io::json::read<World>(world, rose::io::Folder::Working, "Quicksafe.json");
     }
 
     if(ImGui::Button("New Game")) {
@@ -256,9 +267,9 @@ ROSE_EXPORT void draw() {
             }
             
             //Borders
-            DrawCubeWiresOutline({-13.5f, .0f, .0f,}, 1.0f, 100.0f, 1.0f, GRAY, BLACK);
-            DrawCubeWiresOutline({13.5f, .0f, .0f,}, 1.0f, 100.0f, 1.0f, GRAY, BLACK);
-            DrawCubeWiresOutline({.0f, 20.0f, .0f,}, 100.0f, 1.0f, 1.0f, GRAY, BLACK);
+            DrawCubeWiresOutline({-14.0f,   .0f, .0f,}, 1.0f, 100.0f, 1.0f, GRAY, BLACK);
+            DrawCubeWiresOutline({ 14.0f,   .0f, .0f,}, 1.0f, 100.0f, 1.0f, GRAY, BLACK);
+            DrawCubeWiresOutline({   .0f, 24.0f, .0f,}, 29.0f, 1.0f, 1.0f, GRAY, BLACK);
 
             DrawGrid(10, 1.0f);
         }
