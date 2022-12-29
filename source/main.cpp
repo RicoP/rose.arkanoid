@@ -102,7 +102,7 @@ ROSE_EXPORT void postload() {
     // Unload the image data to free memory
     UnloadImage(image);
 
-    rose::io::json::read<World>(world, rose::io::Folder::Working, "game_state.json");
+    rose::io::json::read(world, rose::io::Folder::Working, "game_state.json");
 }
 
 ROSE_EXPORT void predestroy() {
@@ -228,7 +228,16 @@ ROSE_EXPORT void draw() {
 
     update();
 
-    ImGui::LabelText("Build Time", "%s", __TIME__);
+    static float new_build = 7;
+
+    if(new_build > 0) {
+        //ImGui::LabelText("New Build!", "%1.3f", new_build);
+        ImGui::LabelText("Build Time", "%s NEW BUILD!", __TIME__);
+        new_build -= .1f;
+    }
+    else {
+        ImGui::LabelText("Build Time", "%s", __TIME__);
+    }
 
     if(ImGui::Button("New Stone")) {
         add_new_stone();
@@ -243,7 +252,7 @@ ROSE_EXPORT void draw() {
     }
 
     if(ImGui::Button("Quickload")) {
-        rose::io::json::read<World>(world, rose::io::Folder::Working, "Quicksafe.json");
+        rose::io::json::read(world, rose::io::Folder::Working, "Quicksafe.json");
     }
 
     if(ImGui::Button("New Game")) {
