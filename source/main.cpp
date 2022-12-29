@@ -21,6 +21,7 @@
 World world;
 Camera3D camera = { 0 };
 float ballSpeed = .3f;
+float ballRadius = .5f;
 
 static Vector3 operator*(Vector3 lhs, float rhs) {
     lhs.x *= rhs;
@@ -29,17 +30,29 @@ static Vector3 operator*(Vector3 lhs, float rhs) {
     return lhs;
 }
 
-static Vector3 operator+(Vector3 lhs, Vector3  rhs) {
+static Vector3 operator+(Vector3 lhs, Vector3 rhs) {
     lhs.x += rhs.x;
     lhs.y += rhs.y;
     lhs.z += rhs.z;
     return lhs;
 }
 
-static Vector3 operator-(Vector3 lhs, Vector3  rhs) {
+static Vector3 operator-(Vector3 lhs, Vector3 rhs) {
     lhs.x -= rhs.x;
     lhs.y -= rhs.y;
     lhs.z -= rhs.z;
+    return lhs;
+}
+
+static c2v operator+(c2v lhs, c2v rhs) {
+    lhs.x += rhs.x;
+    lhs.y += rhs.y;
+    return lhs;
+}
+
+static c2v operator-(c2v lhs, c2v rhs) {
+    lhs.x -= rhs.x;
+    lhs.y -= rhs.y;
     return lhs;
 }
 
@@ -48,6 +61,13 @@ static Vector3 & operator+=(Vector3 & lhs, Vector3 rhs) {
     lhs.y += rhs.y;
     lhs.z += rhs.z;
     return lhs;
+}
+
+static c2v toc2v(Vector3 v) {
+    c2v v2;
+    v2.x = v.x;
+    v2.y = v.y;
+    return v2;
 }
 
 bool equalish(Vector3 lhs, Vector3 rhs) {
@@ -77,8 +97,44 @@ ROSE_EXPORT void predestroy() {
     rose::io::json::write(world, rose::io::Folder::Working, "game_state.json");
 }
 
+void collisionCheck() {
+    c2Circle pBall;
+    pBall.p = toc2v(world.ballPosition);
+    pBall.r = ballRadius;
+
+    for(auto & stone : world.stones) {
+        c2v p = toc2v(stone.position);
+
+        c2AABB pStone;
+        pStone.max = p + toc2v( stone.size * .5 );
+        pStone.min = p - toc2v( stone.size * .5 );
+
+        if(c2CircletoAABB(pBall, pStone)) {
+            stone.state = StoneState::Dead;
+            world.ballVelocity.y *= -1;
+            break;
+        }
+    }
+
+    auto end = std::remove_if(world.stones.begin(), world.stones.end(), [](auto & stone) {
+        return stone.state == StoneState::Dead;
+    });
+
+    world.stones.erase(end, world.stones.end());
+}
+
+void reset_ball() {
+    world.ballPosition = world.cubePosition + Vector3 {0.0f, 1.0f, 0.0f};
+    auto rand = rose::hash_from_clock();
+    float vx = rose::nextf(rand) * 2 - 1;
+    world.ballVelocity = Vector3 {vx, 1.0, 0};
+}
+
 void update() {
     if(world.state == WorldState::Paused) return;
+
+    collisionCheck();
+
     world.cubePosition.x += rose::input::stick().x;
     world.ballPosition += world.ballVelocity * ballSpeed;
 
@@ -92,10 +148,8 @@ void update() {
     if(world.ballPosition.y < 0) {
         world.points -= 1;
 
-        world.ballPosition = world.cubePosition + Vector3 {0.0f, 1.0f, 0.0f};
-        auto rand = rose::hash_from_clock();
-        float vx = rose::nextf(rand) * 2 - 1;
-        world.ballVelocity = Vector3 {vx, 1.0, 0};
+        reset_ball();
+
     }
     else if(world.ballPosition.y < 1 && world.ballVelocity.y < 0) {
         if(world.ballPosition.x > world.cubePosition.x - 2 && world.ballPosition.x < world.cubePosition.x + 2) {
@@ -113,11 +167,7 @@ void DrawCubeWiresOutline(Vector3 position, float width, float height, float len
 }
 
 ROSE_EXPORT void draw() {
-    update();
-
-    ImGui::LabelText("Build Time", "%s", __TIME__);
-
-    if(ImGui::Button("New Stone")) {
+    auto add_new_stone = []() {
         float x = -10;
         float y = 17;
         float xyi = 2;
@@ -156,14 +206,32 @@ ROSE_EXPORT void draw() {
             }
             return lhs.position.y > rhs.position.y;
         });
-        
+    };
+
+    update();
+
+    ImGui::LabelText("Build Time", "%s", __TIME__);
+
+    if(ImGui::Button("New Stone")) {
+        add_new_stone();
     }
 
     if(ImGui::Button("Clear Stone")) {
         world.stones.clear();
     }
+
     if(ImGui::Button("Safe Game")) {
         rose::io::json::write(world, rose::io::Folder::Working, "game_state.json");
+    }
+
+    if(ImGui::Button("New Game")) {
+        world.points = 0;
+        reset_ball();
+
+        world.stones.clear();
+        for(int i = 0; i != 5*11; ++i) {
+            add_new_stone();
+        }
     }
 
     ImGui::DragFloat("Cam Distance", &camera.position.z, .1f, 1, 100);
@@ -180,11 +248,11 @@ ROSE_EXPORT void draw() {
             DrawCubeWiresOutline(world.cubePosition, 3.0f, 1.0f, 1.0f, YELLOW, MAROON);
 
             //Ball
-            DrawSphere(world.ballPosition, .5f, RED);
+            DrawSphere(world.ballPosition, ballRadius, RED);
 
             //Stones
             for(auto & stone : world.stones) {
-                DrawCubeWiresOutline(stone.position, 1.0f, 1.0f, 1.0f, stone.color, BLACK);
+                DrawCubeWiresOutline(stone.position, stone.size.x, stone.size.y, stone.size.z, stone.color, BLACK);
             }
             
             //Borders

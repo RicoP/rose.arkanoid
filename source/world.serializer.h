@@ -10,7 +10,23 @@
 //    rose.parser -I world.h -O world.serializer.h
 ///////////////////////////////////////////////////////////////////
 
-enum class                   WorldState;
+enum class                   StoneState : int ;
+const char * to_string(const StoneState &);
+namespace rose {
+  namespace ecs {
+    void      deserialize(StoneState &o, IDeserializer &s);
+    void        serialize(StoneState &o, ISerializer &s);
+  }
+  template<>
+  struct type_id<StoneState> {
+    inline static hash_value VALUE = 11910806599994158533ULL;
+  };
+  hash_value         hash(const StoneState &o);
+  void construct_defaults(      StoneState &o); //implement me
+}
+
+
+enum class                   WorldState : int ;
 const char * to_string(const WorldState &);
 namespace rose {
   namespace ecs {
@@ -19,7 +35,7 @@ namespace rose {
   }
   template<>
   struct type_id<WorldState> {
-    inline static hash_value VALUE = 1396855694347215861ULL;
+    inline static hash_value VALUE = 18364368338018397444ULL;
   };
   hash_value         hash(const WorldState &o);
   void construct_defaults(      WorldState &o); //implement me
@@ -63,7 +79,7 @@ namespace rose {
   hash_value         hash(const Stone &o);
   template<>
   struct type_id<Stone> {
-    inline static hash_value VALUE = 16848626130602277812ULL;
+    inline static hash_value VALUE = 1551552509579347363ULL;
   };
   void construct_defaults(      Stone &o); // implement me
 }
@@ -80,7 +96,7 @@ namespace rose {
   hash_value         hash(const World &o);
   template<>
   struct type_id<World> {
-    inline static hash_value VALUE = 830932191923771514ULL;
+    inline static hash_value VALUE = 4948442482138032016ULL;
   };
   void construct_defaults(      World &o); // implement me
 }
@@ -139,6 +155,42 @@ bool operator!=(const World &lhs, const World &rhs);
     }
     #endif
   
+const char * to_string(const StoneState & e) {
+    switch(e) {
+        case StoneState::Alive: return "Alive";
+        case StoneState::Dead: return "Dead";
+        default: return "<UNKNOWN>";
+    }
+}
+void rose::ecs::serialize(StoneState& o, ISerializer& s) {
+  switch (o) {
+    case StoneState::Alive: {
+      char str[] = "Alive";
+      serialize(str, s);
+      break;
+    }
+    case StoneState::Dead: {
+      char str[] = "Dead";
+      serialize(str, s);
+      break;
+    }
+    default: /* unknown */ break;
+  }
+}
+void rose::ecs::deserialize(StoneState& o, IDeserializer& s) {
+  char str[64];
+  deserialize(str, s);
+  rose::hash_value h = rose::hash(str);
+  switch (h) {
+  case rose::hash("Alive"): o = StoneState::Alive; break;
+  case rose::hash("Dead"): o = StoneState::Dead; break;
+  default: /*unknown value*/ break;
+  }
+}
+rose::hash_value       rose::hash(const StoneState& o) {
+  return static_cast<rose::hash_value>(o);
+}
+
 const char * to_string(const WorldState & e) {
     switch(e) {
         case WorldState::NewGame: return "NewGame";
@@ -242,21 +294,29 @@ rose::hash_value rose::hash(const Vector3 &o) {
 bool operator==(const Stone &lhs, const Stone &rhs) {
   return
     rose_parser_equals(lhs.position, rhs.position) &&
-    rose_parser_equals(lhs.color, rhs.color) ;
+    rose_parser_equals(lhs.size, rhs.size) &&
+    rose_parser_equals(lhs.color, rhs.color) &&
+    rose_parser_equals(lhs.state, rhs.state) ;
 }
 
 bool operator!=(const Stone &lhs, const Stone &rhs) {
   return
     !rose_parser_equals(lhs.position, rhs.position) ||
-    !rose_parser_equals(lhs.color, rhs.color) ;
+    !rose_parser_equals(lhs.size, rhs.size) ||
+    !rose_parser_equals(lhs.color, rhs.color) ||
+    !rose_parser_equals(lhs.state, rhs.state) ;
 }
 
 void rose::ecs::serialize(Stone &o, ISerializer &s) {
   if(s.node_begin("Stone", rose::hash("Stone"), &o)) {
     s.key("position");
     serialize(o.position, s);
+    s.key("size");
+    serialize(o.size, s);
     s.key("color");
     serialize(o.color, s);
+    s.key("state");
+    serialize(o.state, s);
     s.node_end();
   }
   s.end();
@@ -271,8 +331,14 @@ void rose::ecs::deserialize(Stone &o, IDeserializer &s) {
       case rose::hash("position"):
         deserialize(o.position, s);
         break;
+      case rose::hash("size"):
+        deserialize(o.size, s);
+        break;
       case rose::hash("color"):
         deserialize(o.color, s);
+        break;
+      case rose::hash("state"):
+        deserialize(o.state, s);
         break;
       default: s.skip_key(); break;
     }
@@ -282,7 +348,11 @@ void rose::ecs::deserialize(Stone &o, IDeserializer &s) {
 rose::hash_value rose::hash(const Stone &o) {
   rose::hash_value h = rose::hash(o.position);
   h = rose::xor64(h);
+  h ^= rose::hash(o.size);
+  h = rose::xor64(h);
   h ^= rose::hash(o.color);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.state);
   return h;
 }
 ///////////////////////////////////////////////////////////////////

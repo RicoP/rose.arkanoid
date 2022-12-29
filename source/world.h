@@ -69,22 +69,29 @@ namespace rose {
 
 // World state stuff
 
+enum class StoneState : int {
+  Alive = 0,
+  Dead
+};
+
 struct Stone {
-    Vector3 position = { 0.0f, 0.0f, 0.0f };
+    Vector3 position = { 0,0,0 };
+    Vector3 size = { 1,1,1 };
     Color color = RED;
+    StoneState state = StoneState::Alive;
 };
 
 
-enum class WorldState {
+enum class WorldState : int {
     NewGame,
     Running,
     Paused,
 };
 
 struct World {
-    Vector3 cubePosition = { 0.0f, 0.0f, 0.0f };
-    Vector3 ballPosition = { 0.0f, 1.0f, 0.0f };
-    Vector3 ballVelocity = { 1.0f, 1.0f, 0.0f };
+    Vector3 cubePosition = { 0,0,0 };
+    Vector3 ballPosition = { 0,1,0 };
+    Vector3 ballVelocity = { 1,1,0 };
     int points = 0;
 
     WorldState state = WorldState::NewGame;
