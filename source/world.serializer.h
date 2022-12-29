@@ -40,6 +40,20 @@ bool operator==(const Color &lhs, const Color &rhs);
 bool operator!=(const Color &lhs, const Color &rhs);
 
 
+namespace rose {
+  namespace ecs {
+  }
+  hash_value         hash(const Vector3 &o);
+  template<>
+  struct type_id<Vector3> {
+    inline static hash_value VALUE = 865855757241434760ULL;
+  };
+  void construct_defaults(      Vector3 &o); // implement me
+}
+bool operator==(const Vector3 &lhs, const Vector3 &rhs);
+bool operator!=(const Vector3 &lhs, const Vector3 &rhs);
+
+
 struct                Stone;
 namespace rose {
   namespace ecs {
@@ -55,20 +69,6 @@ namespace rose {
 }
 bool operator==(const Stone &lhs, const Stone &rhs);
 bool operator!=(const Stone &lhs, const Stone &rhs);
-
-
-namespace rose {
-  namespace ecs {
-  }
-  hash_value         hash(const Vector3 &o);
-  template<>
-  struct type_id<Vector3> {
-    inline static hash_value VALUE = 865855757241434760ULL;
-  };
-  void construct_defaults(      Vector3 &o); // implement me
-}
-bool operator==(const Vector3 &lhs, const Vector3 &rhs);
-bool operator!=(const Vector3 &lhs, const Vector3 &rhs);
 
 
 struct                World;
@@ -212,6 +212,31 @@ rose::hash_value rose::hash(const Color &o) {
   return h;
 }
 ///////////////////////////////////////////////////////////////////
+//  struct Vector3
+///////////////////////////////////////////////////////////////////
+bool operator==(const Vector3 &lhs, const Vector3 &rhs) {
+  return
+    rose_parser_equals(lhs.x, rhs.x) &&
+    rose_parser_equals(lhs.y, rhs.y) &&
+    rose_parser_equals(lhs.z, rhs.z) ;
+}
+
+bool operator!=(const Vector3 &lhs, const Vector3 &rhs) {
+  return
+    !rose_parser_equals(lhs.x, rhs.x) ||
+    !rose_parser_equals(lhs.y, rhs.y) ||
+    !rose_parser_equals(lhs.z, rhs.z) ;
+}
+
+rose::hash_value rose::hash(const Vector3 &o) {
+  rose::hash_value h = rose::hash(o.x);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.y);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.z);
+  return h;
+}
+///////////////////////////////////////////////////////////////////
 //  struct Stone
 ///////////////////////////////////////////////////////////////////
 bool operator==(const Stone &lhs, const Stone &rhs) {
@@ -258,31 +283,6 @@ rose::hash_value rose::hash(const Stone &o) {
   rose::hash_value h = rose::hash(o.position);
   h = rose::xor64(h);
   h ^= rose::hash(o.color);
-  return h;
-}
-///////////////////////////////////////////////////////////////////
-//  struct Vector3
-///////////////////////////////////////////////////////////////////
-bool operator==(const Vector3 &lhs, const Vector3 &rhs) {
-  return
-    rose_parser_equals(lhs.x, rhs.x) &&
-    rose_parser_equals(lhs.y, rhs.y) &&
-    rose_parser_equals(lhs.z, rhs.z) ;
-}
-
-bool operator!=(const Vector3 &lhs, const Vector3 &rhs) {
-  return
-    !rose_parser_equals(lhs.x, rhs.x) ||
-    !rose_parser_equals(lhs.y, rhs.y) ||
-    !rose_parser_equals(lhs.z, rhs.z) ;
-}
-
-rose::hash_value rose::hash(const Vector3 &o) {
-  rose::hash_value h = rose::hash(o.x);
-  h = rose::xor64(h);
-  h ^= rose::hash(o.y);
-  h = rose::xor64(h);
-  h ^= rose::hash(o.z);
   return h;
 }
 ///////////////////////////////////////////////////////////////////

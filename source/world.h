@@ -3,6 +3,8 @@
 #include <raylib.h>
 #include <vector>
 
+// Import Raylib structs
+
 //@Imposter Color is declared in raylib.h
 /*
 struct Color {
@@ -13,7 +15,12 @@ struct Color {
 };
 */
 
-
+//@Imposter vector3 is declared in raylib.h
+/*
+struct Vector3 {
+	float x,y,z;
+};
+*/
 
 namespace rose {
   namespace ecs {
@@ -44,21 +51,6 @@ namespace rose {
   }
 }
 
-
-struct Stone {
-    Vector3 position = { 0.0f, 0.0f, 0.0f };
-    Color color = RED;
-};
-
-
-//@Imposter vector3 is declared in raylib.h
-/*
-struct Vector3 {
-	float x,y,z;
-};
-*/
-
-
 namespace rose {
   namespace ecs {
     void        serialize(Vector3 &o, ISerializer &s) {
@@ -74,6 +66,14 @@ namespace rose {
     }
   }
 }
+
+// World state stuff
+
+struct Stone {
+    Vector3 position = { 0.0f, 0.0f, 0.0f };
+    Color color = RED;
+};
+
 
 enum class WorldState {
     NewGame,
