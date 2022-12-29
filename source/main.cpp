@@ -15,6 +15,9 @@
 #define IMPL_SERIALIZER
 #include "world.serializer.h"
 
+#define CUTE_C2_IMPLEMENTATION
+#include "cute/cute_c2.h"
+
 World world;
 Camera3D camera = { 0 };
 float ballSpeed = .3f;
@@ -171,8 +174,6 @@ ROSE_EXPORT void draw() {
 
     BeginDrawing();
     {
-        ClearBackground(RAYWHITE);
-
         BeginMode3D(camera);
         {
             //Paddle
