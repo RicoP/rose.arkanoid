@@ -19,7 +19,7 @@ namespace rose {
   }
   template<>
   struct type_id<WorldState> {
-    inline static hash_value VALUE = 3382719438552353832ULL;
+    inline static hash_value VALUE = 1396855694347215861ULL;
   };
   hash_value         hash(const WorldState &o);
   void construct_defaults(      WorldState &o); //implement me
@@ -28,8 +28,6 @@ namespace rose {
 
 namespace rose {
   namespace ecs {
-    void        serialize(Color &o, ISerializer &s);
-    void      deserialize(Color &o, IDeserializer &s);
   }
   hash_value         hash(const Color &o);
   template<>
@@ -61,8 +59,6 @@ bool operator!=(const Stone &lhs, const Stone &rhs);
 
 namespace rose {
   namespace ecs {
-    void        serialize(Vector3 &o, ISerializer &s);
-    void      deserialize(Vector3 &o, IDeserializer &s);
   }
   hash_value         hash(const Vector3 &o);
   template<>
@@ -147,6 +143,7 @@ const char * to_string(const WorldState & e) {
     switch(e) {
         case WorldState::NewGame: return "NewGame";
         case WorldState::Running: return "Running";
+        case WorldState::Paused: return "Paused";
         default: return "<UNKNOWN>";
     }
 }
@@ -162,6 +159,11 @@ void rose::ecs::serialize(WorldState& o, ISerializer& s) {
       serialize(str, s);
       break;
     }
+    case WorldState::Paused: {
+      char str[] = "Paused";
+      serialize(str, s);
+      break;
+    }
     default: /* unknown */ break;
   }
 }
@@ -172,6 +174,7 @@ void rose::ecs::deserialize(WorldState& o, IDeserializer& s) {
   switch (h) {
   case rose::hash("NewGame"): o = WorldState::NewGame; break;
   case rose::hash("Running"): o = WorldState::Running; break;
+  case rose::hash("Paused"): o = WorldState::Paused; break;
   default: /*unknown value*/ break;
   }
 }
@@ -196,44 +199,6 @@ bool operator!=(const Color &lhs, const Color &rhs) {
     !rose_parser_equals(lhs.g, rhs.g) ||
     !rose_parser_equals(lhs.b, rhs.b) ||
     !rose_parser_equals(lhs.a, rhs.a) ;
-}
-
-void rose::ecs::serialize(Color &o, ISerializer &s) {
-  if(s.node_begin("Color", rose::hash("Color"), &o)) {
-    s.key("r");
-    serialize(o.r, s);
-    s.key("g");
-    serialize(o.g, s);
-    s.key("b");
-    serialize(o.b, s);
-    s.key("a");
-    serialize(o.a, s);
-    s.node_end();
-  }
-  s.end();
-}
-
-void rose::ecs::deserialize(Color &o, IDeserializer &s) {
-  //implement me
-  //construct_defaults(o);
-
-  while (s.next_key()) {
-    switch (s.hash_key()) {
-      case rose::hash("r"):
-        deserialize(o.r, s);
-        break;
-      case rose::hash("g"):
-        deserialize(o.g, s);
-        break;
-      case rose::hash("b"):
-        deserialize(o.b, s);
-        break;
-      case rose::hash("a"):
-        deserialize(o.a, s);
-        break;
-      default: s.skip_key(); break;
-    }
-  }
 }
 
 rose::hash_value rose::hash(const Color &o) {
@@ -310,39 +275,6 @@ bool operator!=(const Vector3 &lhs, const Vector3 &rhs) {
     !rose_parser_equals(lhs.x, rhs.x) ||
     !rose_parser_equals(lhs.y, rhs.y) ||
     !rose_parser_equals(lhs.z, rhs.z) ;
-}
-
-void rose::ecs::serialize(Vector3 &o, ISerializer &s) {
-  if(s.node_begin("Vector3", rose::hash("Vector3"), &o)) {
-    s.key("x");
-    serialize(o.x, s);
-    s.key("y");
-    serialize(o.y, s);
-    s.key("z");
-    serialize(o.z, s);
-    s.node_end();
-  }
-  s.end();
-}
-
-void rose::ecs::deserialize(Vector3 &o, IDeserializer &s) {
-  //implement me
-  //construct_defaults(o);
-
-  while (s.next_key()) {
-    switch (s.hash_key()) {
-      case rose::hash("x"):
-        deserialize(o.x, s);
-        break;
-      case rose::hash("y"):
-        deserialize(o.y, s);
-        break;
-      case rose::hash("z"):
-        deserialize(o.z, s);
-        break;
-      default: s.skip_key(); break;
-    }
-  }
 }
 
 rose::hash_value rose::hash(const Vector3 &o) {

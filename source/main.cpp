@@ -60,7 +60,7 @@ bool equalish(Vector3 lhs, Vector3 rhs) {
 
 ROSE_EXPORT void postload() {
     // Define the camera to look into our 3d world
-    camera.position = { 0.0f, 10.0f, 30.0f }; // Camera position
+    camera.position = { 0.0f, 10.0f, 35.5f }; // Camera position
     camera.target = { 0.0f, 10.0f, 0.0f };      // Camera looking at point
     camera.up = { 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
     camera.fovy = 45.0f;                                // Camera field-of-view Y
@@ -75,6 +75,7 @@ ROSE_EXPORT void predestroy() {
 }
 
 void update() {
+    if(world.state == WorldState::Paused) return;
     world.cubePosition.x += rose::input::stick().x;
     world.ballPosition += world.ballVelocity * ballSpeed;
 
@@ -100,6 +101,18 @@ void update() {
             world.ballVelocity.x += vec_dif.x * .25f;
         }
     }
+}
+
+void DrawCubeWiresOutline(Vector3 position, float width, float height, float length, Color colorA, Color colorB)
+{
+    DrawCube(position, width,height, length, colorA);
+    DrawCubeWires(position, width+.01f,height+.01f, length+.01f, colorB);
+}
+
+ROSE_EXPORT void draw() {
+    update();
+
+    ImGui::LabelText("Build Time", "%s", __TIME__);
 
     if(ImGui::Button("New Stone")) {
         float x = -10;
@@ -149,29 +162,12 @@ void update() {
     if(ImGui::Button("Safe Game")) {
         rose::io::json::write(world, rose::io::Folder::Working, "game_state.json");
     }
-    /*
-    int i = 0;
-    for(auto & stone : world.stones) {
-        ImGui::PushID(i++);
-        ImGui::LabelText("Stone", "ID: %d, Pos: (%g, %g)", i, stone.position.x, stone.position.y);
-        ImGui::PopID();
-    }
-    */
 
+    ImGui::DragFloat("Cam Distance", &camera.position.z, .1f, 1, 100);
     ImGui::Separator();
 
     ImguiSerializer serializer;
     rose::ecs::serialize(world, serializer);
-}
-
-void DrawCubeWiresOutline(Vector3 position, float width, float height, float length, Color colorA, Color colorB)
-{
-    DrawCube(position, width,height, length, colorA);
-    DrawCubeWires(position, width+.01f,height+.01f, length+.01f, colorB);
-}
-
-ROSE_EXPORT void draw() {
-    update();
 
     BeginDrawing();
     {
@@ -213,7 +209,22 @@ ROSE_EXPORT void draw() {
 
 }
 
+static PadEventButton previous_button = PadEventButton::NONE;
+
 ROSE_EXPORT void event(const rose::Event & ev) {
+    if(auto pad = ev.get<PadEvent>()) {
+        PadEventButton changed_button = pad->buttons ^ previous_button;
+
+        if(!!(pad->buttons & PadEventButton::OptionRight) && !!(pad->buttons & changed_button)) {
+            switch (world.state) {
+                case WorldState::Paused: world.state = WorldState::Running; break;
+                case WorldState::Running: world.state = WorldState::Paused; break;
+                default: break;
+            }
+        }
+        previous_button = pad->buttons;
+    }
+
 }
 
 ROSE_EXPORT void ui() {
