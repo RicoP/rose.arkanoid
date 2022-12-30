@@ -135,11 +135,9 @@ void collisionCheck() {
         }
     }
 
-    auto end = std::remove_if(world.stones.begin(), world.stones.end(), [](auto & stone) {
+    world.stones.erase(std::remove_if(world.stones.begin(), world.stones.end(), [](auto & stone) {
         return stone.state == StoneState::Dead;
-    });
-
-    world.stones.erase(end, world.stones.end());
+    }), world.stones.end());
 }
 
 void reset_ball() {
@@ -168,7 +166,6 @@ void update() {
         world.points -= 1;
 
         reset_ball();
-
     }
     else if(world.ballPosition.y < 1 && world.ballVelocity.y < 0) {
         if(world.ballPosition.x > world.cubePosition.x - 2 && world.ballPosition.x < world.cubePosition.x + 2) {
@@ -179,13 +176,12 @@ void update() {
     }
 }
 
-void DrawCubeWiresOutline(Vector3 position, float width, float height, float length, Color color)
-{
+void DrawCubeWiresOutline(Vector3 position, float width, float height, float length, Color color) {
     DrawCubeTexture(cubeTexture, position, width, height, length, color);
 }
 
 ROSE_EXPORT void draw() {
-    auto add_new_stone = []() {
+    auto add_new_stone = +[]() {
         float x = -10;
         float y = 17;
         float xyi = 2;
@@ -229,15 +225,8 @@ ROSE_EXPORT void draw() {
     update();
 
     static float new_build = 7;
-
-    if(new_build > 0) {
-        //ImGui::LabelText("New Build!", "%1.3f", new_build);
-        ImGui::LabelText("Build Time", "%s NEW BUILD!", __TIME__);
-        new_build -= .1f;
-    }
-    else {
-        ImGui::LabelText("Build Time", "%s", __TIME__);
-    }
+    ImGui::LabelText("Build Time", "%s %s", __TIME__, new_build > 0 ? "NEW BUILD!" : "");
+    new_build -= .1f;
 
     if(ImGui::Button("New Stone")) {
         add_new_stone();
