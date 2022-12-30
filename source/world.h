@@ -2,6 +2,7 @@
 
 #include <raylib.h>
 #include <vector>
+#include <rose/hash.h>
 
 // Import Raylib structs
 
@@ -74,6 +75,12 @@ enum class StoneState : int {
   Dead
 };
 
+enum class WorldState : int {
+    NewGame,
+    Running,
+    Paused,
+};
+
 struct Stone {
     Vector3 position = { 0,0,0 };
     Vector3 size = { 1,1,1 };
@@ -81,19 +88,27 @@ struct Stone {
     StoneState state = StoneState::Alive;
 };
 
+struct World {
+  Vector3 cubePosition = { 0,0,0 };
+  Vector3 ballPosition = { 0,1,0 };
+  Vector3 ballVelocity = { 1,1,0 };
+  Vector3 currentStick = { 0,0,0 };
 
-enum class WorldState : int {
-    NewGame,
-    Running,
-    Paused,
+  rose::hash_value random = 0;
+  int points = 0;
+
+  PadEvent previous_pad_event;
+  WorldState state = WorldState::NewGame;
+  std::vector<Stone> stones;
 };
 
-struct World {
-    Vector3 cubePosition = { 0,0,0 };
-    Vector3 ballPosition = { 0,1,0 };
-    Vector3 ballVelocity = { 1,1,0 };
-    int points = 0;
+struct PadEventFrameTuple {
+  PadEvent padEvent;
+  int frame = -1;
+};
 
-    WorldState state = WorldState::NewGame;
-    std::vector<Stone> stones;
+struct WorldRecording {
+  World startworld;
+  int replayFrame = 0;
+  std::vector<PadEventFrameTuple> padFrames;
 };

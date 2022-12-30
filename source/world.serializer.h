@@ -96,12 +96,46 @@ namespace rose {
   hash_value         hash(const World &o);
   template<>
   struct type_id<World> {
-    inline static hash_value VALUE = 4948442482138032016ULL;
+    inline static hash_value VALUE = 1462745189867128023ULL;
   };
   void construct_defaults(      World &o); // implement me
 }
 bool operator==(const World &lhs, const World &rhs);
 bool operator!=(const World &lhs, const World &rhs);
+
+
+struct                PadEventFrameTuple;
+namespace rose {
+  namespace ecs {
+    void        serialize(PadEventFrameTuple &o, ISerializer &s);
+    void      deserialize(PadEventFrameTuple &o, IDeserializer &s);
+  }
+  hash_value         hash(const PadEventFrameTuple &o);
+  template<>
+  struct type_id<PadEventFrameTuple> {
+    inline static hash_value VALUE = 7765748126551423679ULL;
+  };
+  void construct_defaults(      PadEventFrameTuple &o); // implement me
+}
+bool operator==(const PadEventFrameTuple &lhs, const PadEventFrameTuple &rhs);
+bool operator!=(const PadEventFrameTuple &lhs, const PadEventFrameTuple &rhs);
+
+
+struct                WorldRecording;
+namespace rose {
+  namespace ecs {
+    void        serialize(WorldRecording &o, ISerializer &s);
+    void      deserialize(WorldRecording &o, IDeserializer &s);
+  }
+  hash_value         hash(const WorldRecording &o);
+  template<>
+  struct type_id<WorldRecording> {
+    inline static hash_value VALUE = 6123954327767323576ULL;
+  };
+  void construct_defaults(      WorldRecording &o); // implement me
+}
+bool operator==(const WorldRecording &lhs, const WorldRecording &rhs);
+bool operator!=(const WorldRecording &lhs, const WorldRecording &rhs);
 
 
 #ifdef IMPL_SERIALIZER
@@ -363,7 +397,10 @@ bool operator==(const World &lhs, const World &rhs) {
     rose_parser_equals(lhs.cubePosition, rhs.cubePosition) &&
     rose_parser_equals(lhs.ballPosition, rhs.ballPosition) &&
     rose_parser_equals(lhs.ballVelocity, rhs.ballVelocity) &&
+    rose_parser_equals(lhs.currentStick, rhs.currentStick) &&
+    rose_parser_equals(lhs.random, rhs.random) &&
     rose_parser_equals(lhs.points, rhs.points) &&
+    rose_parser_equals(lhs.previous_pad_event, rhs.previous_pad_event) &&
     rose_parser_equals(lhs.state, rhs.state) &&
     rose_parser_equals(lhs.stones, rhs.stones) ;
 }
@@ -373,7 +410,10 @@ bool operator!=(const World &lhs, const World &rhs) {
     !rose_parser_equals(lhs.cubePosition, rhs.cubePosition) ||
     !rose_parser_equals(lhs.ballPosition, rhs.ballPosition) ||
     !rose_parser_equals(lhs.ballVelocity, rhs.ballVelocity) ||
+    !rose_parser_equals(lhs.currentStick, rhs.currentStick) ||
+    !rose_parser_equals(lhs.random, rhs.random) ||
     !rose_parser_equals(lhs.points, rhs.points) ||
+    !rose_parser_equals(lhs.previous_pad_event, rhs.previous_pad_event) ||
     !rose_parser_equals(lhs.state, rhs.state) ||
     !rose_parser_equals(lhs.stones, rhs.stones) ;
 }
@@ -386,8 +426,14 @@ void rose::ecs::serialize(World &o, ISerializer &s) {
     serialize(o.ballPosition, s);
     s.key("ballVelocity");
     serialize(o.ballVelocity, s);
+    s.key("currentStick");
+    serialize(o.currentStick, s);
+    s.key("random");
+    serialize(o.random, s);
     s.key("points");
     serialize(o.points, s);
+    s.key("previous_pad_event");
+    serialize(o.previous_pad_event, s);
     s.key("state");
     serialize(o.state, s);
     s.key("stones");
@@ -412,8 +458,17 @@ void rose::ecs::deserialize(World &o, IDeserializer &s) {
       case rose::hash("ballVelocity"):
         deserialize(o.ballVelocity, s);
         break;
+      case rose::hash("currentStick"):
+        deserialize(o.currentStick, s);
+        break;
+      case rose::hash("random"):
+        deserialize(o.random, s);
+        break;
       case rose::hash("points"):
         deserialize(o.points, s);
+        break;
+      case rose::hash("previous_pad_event"):
+        deserialize(o.previous_pad_event, s);
         break;
       case rose::hash("state"):
         deserialize(o.state, s);
@@ -433,11 +488,124 @@ rose::hash_value rose::hash(const World &o) {
   h = rose::xor64(h);
   h ^= rose::hash(o.ballVelocity);
   h = rose::xor64(h);
+  h ^= rose::hash(o.currentStick);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.random);
+  h = rose::xor64(h);
   h ^= rose::hash(o.points);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.previous_pad_event);
   h = rose::xor64(h);
   h ^= rose::hash(o.state);
   h = rose::xor64(h);
   h ^= rose::hash(o.stones);
+  return h;
+}
+///////////////////////////////////////////////////////////////////
+//  struct PadEventFrameTuple
+///////////////////////////////////////////////////////////////////
+bool operator==(const PadEventFrameTuple &lhs, const PadEventFrameTuple &rhs) {
+  return
+    rose_parser_equals(lhs.padEvent, rhs.padEvent) &&
+    rose_parser_equals(lhs.frame, rhs.frame) ;
+}
+
+bool operator!=(const PadEventFrameTuple &lhs, const PadEventFrameTuple &rhs) {
+  return
+    !rose_parser_equals(lhs.padEvent, rhs.padEvent) ||
+    !rose_parser_equals(lhs.frame, rhs.frame) ;
+}
+
+void rose::ecs::serialize(PadEventFrameTuple &o, ISerializer &s) {
+  if(s.node_begin("PadEventFrameTuple", rose::hash("PadEventFrameTuple"), &o)) {
+    s.key("padEvent");
+    serialize(o.padEvent, s);
+    s.key("frame");
+    serialize(o.frame, s);
+    s.node_end();
+  }
+  s.end();
+}
+
+void rose::ecs::deserialize(PadEventFrameTuple &o, IDeserializer &s) {
+  //implement me
+  //construct_defaults(o);
+
+  while (s.next_key()) {
+    switch (s.hash_key()) {
+      case rose::hash("padEvent"):
+        deserialize(o.padEvent, s);
+        break;
+      case rose::hash("frame"):
+        deserialize(o.frame, s);
+        break;
+      default: s.skip_key(); break;
+    }
+  }
+}
+
+rose::hash_value rose::hash(const PadEventFrameTuple &o) {
+  rose::hash_value h = rose::hash(o.padEvent);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.frame);
+  return h;
+}
+///////////////////////////////////////////////////////////////////
+//  struct WorldRecording
+///////////////////////////////////////////////////////////////////
+bool operator==(const WorldRecording &lhs, const WorldRecording &rhs) {
+  return
+    rose_parser_equals(lhs.startworld, rhs.startworld) &&
+    rose_parser_equals(lhs.replayFrame, rhs.replayFrame) &&
+    rose_parser_equals(lhs.padFrames, rhs.padFrames) ;
+}
+
+bool operator!=(const WorldRecording &lhs, const WorldRecording &rhs) {
+  return
+    !rose_parser_equals(lhs.startworld, rhs.startworld) ||
+    !rose_parser_equals(lhs.replayFrame, rhs.replayFrame) ||
+    !rose_parser_equals(lhs.padFrames, rhs.padFrames) ;
+}
+
+void rose::ecs::serialize(WorldRecording &o, ISerializer &s) {
+  if(s.node_begin("WorldRecording", rose::hash("WorldRecording"), &o)) {
+    s.key("startworld");
+    serialize(o.startworld, s);
+    s.key("replayFrame");
+    serialize(o.replayFrame, s);
+    s.key("padFrames");
+    serialize(o.padFrames, s);
+    s.node_end();
+  }
+  s.end();
+}
+
+void rose::ecs::deserialize(WorldRecording &o, IDeserializer &s) {
+  //implement me
+  //construct_defaults(o);
+
+  while (s.next_key()) {
+    switch (s.hash_key()) {
+      case rose::hash("startworld"):
+        deserialize(o.startworld, s);
+        break;
+      case rose::hash("replayFrame"):
+        deserialize(o.replayFrame, s);
+        break;
+      case rose::hash("padFrames"):
+        deserialize(o.padFrames, s);
+        break;
+      default: s.skip_key(); break;
+    }
+  }
+}
+
+rose::hash_value rose::hash(const WorldRecording &o) {
+  rose::hash_value h = rose::hash(o.startworld);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.replayFrame);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.padFrames);
   return h;
 }
 
