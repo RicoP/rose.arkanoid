@@ -306,7 +306,6 @@ ROSE_EXPORT void draw() {
         DrawText("- Z to zoom to (0, 0, 0)", 40, 120, 10, DARKGRAY);
     }
     EndDrawing();
-
 }
 
 static PadEventButton previous_button = PadEventButton::NONE;
@@ -324,7 +323,6 @@ ROSE_EXPORT void event(const rose::Event & ev) {
         }
         previous_button = pad->buttons;
     }
-
 }
 
 ROSE_EXPORT void ui() {
