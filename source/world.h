@@ -110,5 +110,6 @@ struct PadEventFrameTuple {
 struct WorldRecording {
   World startworld;
   int replayFrame = 0;
+  int totalFrames = 0;
   std::vector<PadEventFrameTuple> padFrames;
 };

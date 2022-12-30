@@ -130,7 +130,7 @@ namespace rose {
   hash_value         hash(const WorldRecording &o);
   template<>
   struct type_id<WorldRecording> {
-    inline static hash_value VALUE = 6123954327767323576ULL;
+    inline static hash_value VALUE = 13885071748578120853ULL;
   };
   void construct_defaults(      WorldRecording &o); // implement me
 }
@@ -557,6 +557,7 @@ bool operator==(const WorldRecording &lhs, const WorldRecording &rhs) {
   return
     rose_parser_equals(lhs.startworld, rhs.startworld) &&
     rose_parser_equals(lhs.replayFrame, rhs.replayFrame) &&
+    rose_parser_equals(lhs.totalFrames, rhs.totalFrames) &&
     rose_parser_equals(lhs.padFrames, rhs.padFrames) ;
 }
 
@@ -564,6 +565,7 @@ bool operator!=(const WorldRecording &lhs, const WorldRecording &rhs) {
   return
     !rose_parser_equals(lhs.startworld, rhs.startworld) ||
     !rose_parser_equals(lhs.replayFrame, rhs.replayFrame) ||
+    !rose_parser_equals(lhs.totalFrames, rhs.totalFrames) ||
     !rose_parser_equals(lhs.padFrames, rhs.padFrames) ;
 }
 
@@ -573,6 +575,8 @@ void rose::ecs::serialize(WorldRecording &o, ISerializer &s) {
     serialize(o.startworld, s);
     s.key("replayFrame");
     serialize(o.replayFrame, s);
+    s.key("totalFrames");
+    serialize(o.totalFrames, s);
     s.key("padFrames");
     serialize(o.padFrames, s);
     s.node_end();
@@ -592,6 +596,9 @@ void rose::ecs::deserialize(WorldRecording &o, IDeserializer &s) {
       case rose::hash("replayFrame"):
         deserialize(o.replayFrame, s);
         break;
+      case rose::hash("totalFrames"):
+        deserialize(o.totalFrames, s);
+        break;
       case rose::hash("padFrames"):
         deserialize(o.padFrames, s);
         break;
@@ -604,6 +611,8 @@ rose::hash_value rose::hash(const WorldRecording &o) {
   rose::hash_value h = rose::hash(o.startworld);
   h = rose::xor64(h);
   h ^= rose::hash(o.replayFrame);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.totalFrames);
   h = rose::xor64(h);
   h ^= rose::hash(o.padFrames);
   return h;

@@ -170,7 +170,7 @@ void update() {
 
     collisionCheck();
 
-    world.cubePosition.x += rose::input::stick().x;
+    world.cubePosition.x += world.currentStick.x;
     world.ballPosition += world.ballVelocity * ballSpeed;
 
     if(world.cubePosition.x < -12) world.cubePosition.x = -12;
@@ -255,16 +255,57 @@ ROSE_EXPORT void draw() {
         break;
     
     case RecordingState::RecordingStop:
+        worldrecording.totalFrames = worldrecording.replayFrame;
         rose::io::json::write(worldrecording, rose::io::Folder::Working, "recording.json");
         recordingState = RecordingState::Inactive;
         break;
     
+    case RecordingState::ReplayingStart:
+        {
+            bool found = rose::io::json::read(worldrecording, rose::io::Folder::Working, "recording.json");
+            if(found) {
+                world = worldrecording.startworld;
+                worldrecording.replayFrame = 0;
+                recordingState = RecordingState::Replaying;
+            }
+            else {
+                recordingState = RecordingState::Inactive;
+            }
+        }
+        [[fallthrough]];        
+    case RecordingState::Replaying:
+        {
+            auto end = std::find_if_not(
+                worldrecording.padFrames.begin(), 
+                worldrecording.padFrames.end(), 
+                [&](const PadEventFrameTuple & tuple) { return tuple.frame <= worldrecording.replayFrame; }
+            );
+
+            static int skipFirst = 0;
+            int i = 0;
+            for(auto it = worldrecording.padFrames.begin(); it != end; ++it, ++i) {
+                if(i < skipFirst) continue;
+                PadEventFrameTuple & tuple = *it;
+                processPadEvent(tuple.padEvent);
+            }
+
+            skipFirst = i;
+
+            if(worldrecording.replayFrame == worldrecording.totalFrames) {
+                recordingState = RecordingState::ReplayingStop;
+            }
+        }
+        break;
+    case RecordingState::ReplayingStop:
+        recordingState = RecordingState::Inactive;
+        break;
+
     default:
         break;
     }
 
     update();
-    if(recordingState == RecordingState::Recording) {
+    if(recordingState == RecordingState::Recording || recordingState == RecordingState::Replaying) {
         worldrecording.replayFrame++;
     }
 
@@ -291,6 +332,7 @@ ROSE_EXPORT void draw() {
     if(ImGui::Button("New Game")) {
         world.points = 0;
         world.random = rose::hash_from_clock();
+        world.state = WorldState::Paused;
         reset_ball();
         world.stones.clear();
         for(int i = 0; i != 5*11; ++i) {
@@ -299,19 +341,36 @@ ROSE_EXPORT void draw() {
     }
     ImGui::DragFloat("Cam Distance", &camera.position.z, .1f, 1, 100);
 
+
     ImGui::Separator();
+    if(ImGui::TreeNode("Recording")) {
+        ImGui::BeginDisabled(recordingState != RecordingState::Inactive);
+        if(ImGui::Button("Start Recording")) {
+            recordingState = RecordingState::RecordingStart;
+        }
+        ImGui::EndDisabled();
 
-    ImGui::BeginDisabled(recordingState != RecordingState::Inactive);
-    if(ImGui::Button("Start Recording")) {
-        recordingState = RecordingState::RecordingStart;
-    }
-    ImGui::EndDisabled();
+        ImGui::BeginDisabled(recordingState != RecordingState::Recording);
+        if(ImGui::Button("Stop Recording")) {
+            recordingState = RecordingState::RecordingStop;
+        }
+        ImGui::EndDisabled();
 
-    ImGui::BeginDisabled(recordingState != RecordingState::Recording);
-    if(ImGui::Button("Stop Recording")) {
-        recordingState = RecordingState::RecordingStop;
+        ImGui::BeginDisabled(recordingState != RecordingState::Inactive);
+        if(ImGui::Button("Start Replaying")) {
+            recordingState = RecordingState::ReplayingStart;
+        }
+        ImGui::EndDisabled();
+
+        ImGui::BeginDisabled(recordingState != RecordingState::Replaying);
+        if(ImGui::Button("Stop Replaying")) {
+            recordingState = RecordingState::ReplayingStop;
+        }
+        ImGui::EndDisabled();
+
+
+        ImGui::TreePop();
     }
-    ImGui::EndDisabled();
 
     ImGui::Separator();
 
@@ -365,6 +424,9 @@ void processPadEvent(const PadEvent & pad) {
             default: break;
         }
     }
+    world.currentStick.x = pad.stick_lx;
+    world.currentStick.y = pad.stick_ly;
+
     world.previous_pad_event = pad;
 }
 
