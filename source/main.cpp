@@ -38,6 +38,8 @@ enum class RecordingState {
     ReplayingStop,
 };
 
+float paddlexsum = 0;
+
 RecordingState recordingState = RecordingState::Inactive;
 WorldRecording worldrecording;
 
@@ -246,6 +248,7 @@ ROSE_EXPORT void draw() {
         break;
 
     case RecordingState::RecordingStart:
+        paddlexsum = 0;
         worldrecording.startworld = world;
         worldrecording.replayFrame = 0;
         worldrecording.padFrames.clear();
@@ -262,6 +265,7 @@ ROSE_EXPORT void draw() {
     
     case RecordingState::ReplayingStart:
         {
+            paddlexsum = 0;
             bool found = rose::io::json::read(worldrecording, rose::io::Folder::Working, "recording.json");
             if(found) {
                 world = worldrecording.startworld;
@@ -306,6 +310,8 @@ ROSE_EXPORT void draw() {
 
     update();
     if(recordingState == RecordingState::Recording || recordingState == RecordingState::Replaying) {
+        paddlexsum += world.currentStick.x;
+
         worldrecording.replayFrame++;
     }
 
@@ -368,6 +374,7 @@ ROSE_EXPORT void draw() {
         }
         ImGui::EndDisabled();
 
+        ImGui::LabelText("Debug Paddlex", "%g", paddlexsum);
 
         ImGui::TreePop();
     }
