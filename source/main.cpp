@@ -28,7 +28,6 @@ float ballRadius = .5f;
 Texture2D cubeTexture;
 
 WorldRecording worldrecording;
-float paddlexsum = 0;
 
 static Vector3 operator*(Vector3 lhs, float rhs) {
     lhs.x *= rhs;
@@ -229,13 +228,34 @@ ROSE_EXPORT void draw() {
         });
     };
 
+    auto do_replay = [&]() {
+        auto end = std::find_if_not(
+            worldrecording.padFrames.begin(), 
+            worldrecording.padFrames.end(), 
+            [&](const PadEventFrameTuple & tuple) { return tuple.frame <= worldrecording.replayFrame; }
+        );
+
+        static int skipFirst = 0;
+        int i = 0;
+        for(auto it = worldrecording.padFrames.begin(); it != end; ++it, ++i) {
+            if(i < skipFirst) continue;
+            PadEventFrameTuple & tuple = *it;
+            processPadEvent(tuple.padEvent);
+        }
+
+        skipFirst = i;
+
+        if(worldrecording.replayFrame == worldrecording.totalFrames) {
+            worldrecording.state = RecordingState::ReplayingStop;
+        }
+    };
+
     switch (worldrecording.state)
     {
     case RecordingState::Inactive:
         break;
 
     case RecordingState::RecordingStart:
-        paddlexsum = 0;
         worldrecording.startworld = world;
         worldrecording.replayFrame = 0;
         worldrecording.padFrames.clear();
@@ -252,7 +272,6 @@ ROSE_EXPORT void draw() {
     
     case RecordingState::ReplayingStart:
         {
-            paddlexsum = 0;
             bool found = rose::io::json::read(worldrecording, rose::io::Folder::Working, "recording.json");
             if(found) {
                 world = worldrecording.startworld;
@@ -263,28 +282,21 @@ ROSE_EXPORT void draw() {
                 worldrecording.state = RecordingState::Inactive;
             }
         }
-        [[fallthrough]];        
+        [[fallthrough]];
     case RecordingState::Replaying:
+        do_replay();
+        break;
+    case RecordingState::ReplayingSeek:
         {
-            auto end = std::find_if_not(
-                worldrecording.padFrames.begin(), 
-                worldrecording.padFrames.end(), 
-                [&](const PadEventFrameTuple & tuple) { return tuple.frame <= worldrecording.replayFrame; }
-            );
-
-            static int skipFirst = 0;
-            int i = 0;
-            for(auto it = worldrecording.padFrames.begin(); it != end; ++it, ++i) {
-                if(i < skipFirst) continue;
-                PadEventFrameTuple & tuple = *it;
-                processPadEvent(tuple.padEvent);
+            int goalFrame = worldrecording.replayFrame;
+            worldrecording.replayFrame = 0;
+            world = worldrecording.startworld;
+            while(worldrecording.replayFrame < goalFrame) {
+                do_replay();
+                update();
+                worldrecording.replayFrame++;
             }
-
-            skipFirst = i;
-
-            if(worldrecording.replayFrame == worldrecording.totalFrames) {
-                worldrecording.state = RecordingState::ReplayingStop;
-            }
+            worldrecording.state = RecordingState::Replaying;        
         }
         break;
     case RecordingState::ReplayingStop:
@@ -297,8 +309,6 @@ ROSE_EXPORT void draw() {
 
     update();
     if(worldrecording.state == RecordingState::Recording || worldrecording.state == RecordingState::Replaying) {
-        paddlexsum += world.currentStick.x;
-
         worldrecording.replayFrame++;
     }
 
@@ -375,8 +385,6 @@ ROSE_EXPORT void draw() {
                 worldrecording.replayFrame = frame;
             }
         }
-
-        ImGui::LabelText("Debug Paddlex", "%g", paddlexsum);
 
         ImGui::TreePop();
     }
