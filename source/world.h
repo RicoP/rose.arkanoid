@@ -107,9 +107,22 @@ struct PadEventFrameTuple {
   int frame = -1;
 };
 
+enum class RecordingState : int {
+    Inactive = 0,
+    RecordingStart,
+    Recording,
+    RecordingStop,
+
+    ReplayingStart,
+    Replaying,
+    ReplayingSeek,
+    ReplayingStop,
+};
+
 struct WorldRecording {
   World startworld;
   int replayFrame = 0;
   int totalFrames = 0;
   std::vector<PadEventFrameTuple> padFrames;
+  RecordingState state = RecordingState::Inactive;
 };

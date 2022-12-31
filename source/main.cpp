@@ -27,21 +27,8 @@ float ballSpeed = .3f;
 float ballRadius = .5f;
 Texture2D cubeTexture;
 
-enum class RecordingState {
-    Inactive = 0,
-    RecordingStart,
-    Recording,
-    RecordingStop,
-
-    ReplayingStart,
-    Replaying,
-    ReplayingStop,
-};
-
-float paddlexsum = 0;
-
-RecordingState recordingState = RecordingState::Inactive;
 WorldRecording worldrecording;
+float paddlexsum = 0;
 
 static Vector3 operator*(Vector3 lhs, float rhs) {
     lhs.x *= rhs;
@@ -242,7 +229,7 @@ ROSE_EXPORT void draw() {
         });
     };
 
-    switch (recordingState)
+    switch (worldrecording.state)
     {
     case RecordingState::Inactive:
         break;
@@ -252,7 +239,7 @@ ROSE_EXPORT void draw() {
         worldrecording.startworld = world;
         worldrecording.replayFrame = 0;
         worldrecording.padFrames.clear();
-        recordingState = RecordingState::Recording;
+        worldrecording.state = RecordingState::Recording;
         [[fallthrough]];
     case RecordingState::Recording:
         break;
@@ -260,7 +247,7 @@ ROSE_EXPORT void draw() {
     case RecordingState::RecordingStop:
         worldrecording.totalFrames = worldrecording.replayFrame;
         rose::io::json::write(worldrecording, rose::io::Folder::Working, "recording.json");
-        recordingState = RecordingState::Inactive;
+        worldrecording.state = RecordingState::Inactive;
         break;
     
     case RecordingState::ReplayingStart:
@@ -270,10 +257,10 @@ ROSE_EXPORT void draw() {
             if(found) {
                 world = worldrecording.startworld;
                 worldrecording.replayFrame = 0;
-                recordingState = RecordingState::Replaying;
+                worldrecording.state = RecordingState::Replaying;
             }
             else {
-                recordingState = RecordingState::Inactive;
+                worldrecording.state = RecordingState::Inactive;
             }
         }
         [[fallthrough]];        
@@ -296,12 +283,12 @@ ROSE_EXPORT void draw() {
             skipFirst = i;
 
             if(worldrecording.replayFrame == worldrecording.totalFrames) {
-                recordingState = RecordingState::ReplayingStop;
+                worldrecording.state = RecordingState::ReplayingStop;
             }
         }
         break;
     case RecordingState::ReplayingStop:
-        recordingState = RecordingState::Inactive;
+        worldrecording.state = RecordingState::Inactive;
         break;
 
     default:
@@ -309,7 +296,7 @@ ROSE_EXPORT void draw() {
     }
 
     update();
-    if(recordingState == RecordingState::Recording || recordingState == RecordingState::Replaying) {
+    if(worldrecording.state == RecordingState::Recording || worldrecording.state == RecordingState::Replaying) {
         paddlexsum += world.currentStick.x;
 
         worldrecording.replayFrame++;
@@ -350,29 +337,44 @@ ROSE_EXPORT void draw() {
 
     ImGui::Separator();
     if(ImGui::TreeNode("Recording")) {
-        ImGui::BeginDisabled(recordingState != RecordingState::Inactive);
+        ImGui::BeginDisabled(worldrecording.state != RecordingState::Inactive);
         if(ImGui::Button("Start Recording")) {
-            recordingState = RecordingState::RecordingStart;
+            worldrecording.state = RecordingState::RecordingStart;
         }
         ImGui::EndDisabled();
 
-        ImGui::BeginDisabled(recordingState != RecordingState::Recording);
+        ImGui::BeginDisabled(worldrecording.state != RecordingState::Recording);
         if(ImGui::Button("Stop Recording")) {
-            recordingState = RecordingState::RecordingStop;
+            worldrecording.state = RecordingState::RecordingStop;
         }
         ImGui::EndDisabled();
 
-        ImGui::BeginDisabled(recordingState != RecordingState::Inactive);
+
+        ImGui::BeginDisabled(worldrecording.state != RecordingState::Inactive);
         if(ImGui::Button("Start Replaying")) {
-            recordingState = RecordingState::ReplayingStart;
+            worldrecording.state = RecordingState::ReplayingStart;
         }
         ImGui::EndDisabled();
 
-        ImGui::BeginDisabled(recordingState != RecordingState::Replaying);
+        ImGui::BeginDisabled(worldrecording.state != RecordingState::Replaying);
         if(ImGui::Button("Stop Replaying")) {
-            recordingState = RecordingState::ReplayingStop;
+            worldrecording.state = RecordingState::ReplayingStop;
         }
         ImGui::EndDisabled();
+        
+        if(worldrecording.state == RecordingState::Replaying) {
+            float progress = (float)worldrecording.replayFrame / (float)worldrecording.totalFrames;
+            
+            char buffer[64];
+            std::sprintf(buffer, "%d/%d", worldrecording.replayFrame, worldrecording.totalFrames);
+            ImGui::ProgressBar(progress, ImVec2(0.f, 0.f), buffer);
+
+            int frame = worldrecording.replayFrame;
+            if(ImGui::SliderInt("Progress", &frame, 0, worldrecording.totalFrames, buffer)) {
+                worldrecording.state = RecordingState::ReplayingSeek;
+                worldrecording.replayFrame = frame;
+            }
+        }
 
         ImGui::LabelText("Debug Paddlex", "%g", paddlexsum);
 
@@ -438,9 +440,9 @@ void processPadEvent(const PadEvent & pad) {
 }
 
 ROSE_EXPORT void event(const rose::Event & ev) {
-    if(recordingState == RecordingState::Inactive || recordingState == RecordingState::Recording) {
+    if(worldrecording.state == RecordingState::Inactive || worldrecording.state == RecordingState::Recording) {
         if(auto pad = ev.get<PadEvent>()) {
-            if(recordingState == RecordingState::Recording) {
+            if(worldrecording.state == RecordingState::Recording) {
                 PadEventFrameTuple tuple;
                 tuple.frame = worldrecording.replayFrame;
                 tuple.padEvent = *pad;

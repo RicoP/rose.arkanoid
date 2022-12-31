@@ -42,6 +42,22 @@ namespace rose {
 }
 
 
+enum class                   RecordingState : int ;
+const char * to_string(const RecordingState &);
+namespace rose {
+  namespace ecs {
+    void      deserialize(RecordingState &o, IDeserializer &s);
+    void        serialize(RecordingState &o, ISerializer &s);
+  }
+  template<>
+  struct type_id<RecordingState> {
+    inline static hash_value VALUE = 12895677666688842227ULL;
+  };
+  hash_value         hash(const RecordingState &o);
+  void construct_defaults(      RecordingState &o); //implement me
+}
+
+
 namespace rose {
   namespace ecs {
   }
@@ -130,7 +146,7 @@ namespace rose {
   hash_value         hash(const WorldRecording &o);
   template<>
   struct type_id<WorldRecording> {
-    inline static hash_value VALUE = 13885071748578120853ULL;
+    inline static hash_value VALUE = 15755819351817888067ULL;
   };
   void construct_defaults(      WorldRecording &o); // implement me
 }
@@ -265,6 +281,84 @@ void rose::ecs::deserialize(WorldState& o, IDeserializer& s) {
   }
 }
 rose::hash_value       rose::hash(const WorldState& o) {
+  return static_cast<rose::hash_value>(o);
+}
+
+const char * to_string(const RecordingState & e) {
+    switch(e) {
+        case RecordingState::Inactive: return "Inactive";
+        case RecordingState::RecordingStart: return "RecordingStart";
+        case RecordingState::Recording: return "Recording";
+        case RecordingState::RecordingStop: return "RecordingStop";
+        case RecordingState::ReplayingStart: return "ReplayingStart";
+        case RecordingState::Replaying: return "Replaying";
+        case RecordingState::ReplayingSeek: return "ReplayingSeek";
+        case RecordingState::ReplayingStop: return "ReplayingStop";
+        default: return "<UNKNOWN>";
+    }
+}
+void rose::ecs::serialize(RecordingState& o, ISerializer& s) {
+  switch (o) {
+    case RecordingState::Inactive: {
+      char str[] = "Inactive";
+      serialize(str, s);
+      break;
+    }
+    case RecordingState::RecordingStart: {
+      char str[] = "RecordingStart";
+      serialize(str, s);
+      break;
+    }
+    case RecordingState::Recording: {
+      char str[] = "Recording";
+      serialize(str, s);
+      break;
+    }
+    case RecordingState::RecordingStop: {
+      char str[] = "RecordingStop";
+      serialize(str, s);
+      break;
+    }
+    case RecordingState::ReplayingStart: {
+      char str[] = "ReplayingStart";
+      serialize(str, s);
+      break;
+    }
+    case RecordingState::Replaying: {
+      char str[] = "Replaying";
+      serialize(str, s);
+      break;
+    }
+    case RecordingState::ReplayingSeek: {
+      char str[] = "ReplayingSeek";
+      serialize(str, s);
+      break;
+    }
+    case RecordingState::ReplayingStop: {
+      char str[] = "ReplayingStop";
+      serialize(str, s);
+      break;
+    }
+    default: /* unknown */ break;
+  }
+}
+void rose::ecs::deserialize(RecordingState& o, IDeserializer& s) {
+  char str[64];
+  deserialize(str, s);
+  rose::hash_value h = rose::hash(str);
+  switch (h) {
+  case rose::hash("Inactive"): o = RecordingState::Inactive; break;
+  case rose::hash("RecordingStart"): o = RecordingState::RecordingStart; break;
+  case rose::hash("Recording"): o = RecordingState::Recording; break;
+  case rose::hash("RecordingStop"): o = RecordingState::RecordingStop; break;
+  case rose::hash("ReplayingStart"): o = RecordingState::ReplayingStart; break;
+  case rose::hash("Replaying"): o = RecordingState::Replaying; break;
+  case rose::hash("ReplayingSeek"): o = RecordingState::ReplayingSeek; break;
+  case rose::hash("ReplayingStop"): o = RecordingState::ReplayingStop; break;
+  default: /*unknown value*/ break;
+  }
+}
+rose::hash_value       rose::hash(const RecordingState& o) {
   return static_cast<rose::hash_value>(o);
 }
 
@@ -558,7 +652,8 @@ bool operator==(const WorldRecording &lhs, const WorldRecording &rhs) {
     rose_parser_equals(lhs.startworld, rhs.startworld) &&
     rose_parser_equals(lhs.replayFrame, rhs.replayFrame) &&
     rose_parser_equals(lhs.totalFrames, rhs.totalFrames) &&
-    rose_parser_equals(lhs.padFrames, rhs.padFrames) ;
+    rose_parser_equals(lhs.padFrames, rhs.padFrames) &&
+    rose_parser_equals(lhs.state, rhs.state) ;
 }
 
 bool operator!=(const WorldRecording &lhs, const WorldRecording &rhs) {
@@ -566,7 +661,8 @@ bool operator!=(const WorldRecording &lhs, const WorldRecording &rhs) {
     !rose_parser_equals(lhs.startworld, rhs.startworld) ||
     !rose_parser_equals(lhs.replayFrame, rhs.replayFrame) ||
     !rose_parser_equals(lhs.totalFrames, rhs.totalFrames) ||
-    !rose_parser_equals(lhs.padFrames, rhs.padFrames) ;
+    !rose_parser_equals(lhs.padFrames, rhs.padFrames) ||
+    !rose_parser_equals(lhs.state, rhs.state) ;
 }
 
 void rose::ecs::serialize(WorldRecording &o, ISerializer &s) {
@@ -579,6 +675,8 @@ void rose::ecs::serialize(WorldRecording &o, ISerializer &s) {
     serialize(o.totalFrames, s);
     s.key("padFrames");
     serialize(o.padFrames, s);
+    s.key("state");
+    serialize(o.state, s);
     s.node_end();
   }
   s.end();
@@ -602,6 +700,9 @@ void rose::ecs::deserialize(WorldRecording &o, IDeserializer &s) {
       case rose::hash("padFrames"):
         deserialize(o.padFrames, s);
         break;
+      case rose::hash("state"):
+        deserialize(o.state, s);
+        break;
       default: s.skip_key(); break;
     }
   }
@@ -615,6 +716,8 @@ rose::hash_value rose::hash(const WorldRecording &o) {
   h ^= rose::hash(o.totalFrames);
   h = rose::xor64(h);
   h ^= rose::hash(o.padFrames);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.state);
   return h;
 }
 
