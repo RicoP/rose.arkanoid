@@ -6,7 +6,7 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/source",
                 "${workspaceFolder}/../include/",
-                "${workspaceFolder}/../include/imgui/",
+                "${workspaceFolder}/../imgui/",
                 "${workspaceFolder}/../roselib/include/",
                 "${workspaceFolder}/../premake-comppp/include/",
                 "${workspaceFolder}/../raylib/src"
