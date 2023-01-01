@@ -396,13 +396,22 @@ ROSE_EXPORT void draw() {
 
     BeginDrawing();
     {
+        camera.position = { 0.0f, 10.0f, 35.5f }; // Camera position
+        camera.target = { 0.0f, 10.0f, 0.0f };      // Camera looking at point
+        camera.up = { 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+        ImGui::DragFloat("Cam fov ", &camera.fovy);
+        camera.projection = CAMERA_PERSPECTIVE;                   // Camera mode type
+        SetCameraMode(camera, CAMERA_FREE); // Set a free camera mode
+
         BeginMode3D(camera);
         {
             //Paddle
+            world.cubePosition.z = 2;
             DrawCubeWiresOutline(world.cubePosition, 3.0f, 1.0f, 1.0f, YELLOW);
 
             //Ball
-            DrawSphere(world.ballPosition, ballRadius, RED);
+            world.ballPosition.z = 2;
+            DrawSphere(world.ballPosition, ballRadius, PURPLE);
 
             //Stones
             for(auto & stone : world.stones) {
