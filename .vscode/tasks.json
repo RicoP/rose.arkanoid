@@ -63,46 +63,17 @@
             "command": "rose.compile",
             "args": [
                 "${file}",
-                "-v",
+                "--buildtime",
+                "--verbose",
+                "--pipe",
                 "-o", ".build\\${fileBasenameNoExtension}.dll",
             ],
-            //*
-            "problemMatcher": {
-                "owner": "cpp",
-                "fileLocation": [
-                    "relative",
-                    "${workspaceFolder}/.vscode"
-                ],
-                "pattern": {
-                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "message": 5,
-                },
-            },
-            //*/
-            //"problemMatcher":"$msCompile",
             "options": {
                 "cwd": "${fileDirname}\\..",
             },
             "group": {
                 "kind": "build",
             },
-        },
-
-        {
-            "type": "shell",
-            "label": "Rose Announce OK",
-            "command": "rose",
-            "args": [
-                "-broadcastSuccess",
-                "Finished Compiling",
-            ],
-            "group": {
-                "kind": "build",
-            }
         },
 
         {
@@ -133,7 +104,7 @@
             },
                         
             "dependsOrder": "sequence",
-            "dependsOn": ["Rose Announce Start", "Rose Parse", "Rose Compile", "Rose Announce OK", "Rose Clean"],
+            "dependsOn": ["Rose Announce Start", "Rose Parse", "Rose Compile", "Rose Clean"],
             "group": {
                 "kind": "build",
                 "isDefault": true
