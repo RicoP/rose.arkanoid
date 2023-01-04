@@ -28,6 +28,19 @@
 
         {
             "type": "shell",
+            "label": "Rose Announce 1",
+            "command": "rose",
+            "args": [
+                "-broadcastInfo",
+                "Start compiling",
+            ],
+            "group": {
+                "kind": "build",
+            }
+        },
+
+        {
+            "type": "shell",
             "label": "Rose Parse",
             "command": "rose.parser",
             "args": [
@@ -39,6 +52,7 @@
             "options": {
                 "cwd": "${fileDirname}"
             },
+            "dependsOn": ["Rose Announce 1"],
             "group": {
                 "kind": "build",
             }
@@ -64,6 +78,20 @@
 
         {
             "type": "shell",
+            "label": "Rose Announce OK",
+            "command": "rose",
+            "args": [
+                "-broadcastSuccess",
+                "Finished Compiling",
+            ],
+            "dependsOn": ["Rose Compile"],
+            "group": {
+                "kind": "build",
+            }
+        },
+
+        {
+            "type": "shell",
             "label": "Rose Clean",
             "command": "Remove-Item",
             "args": [
@@ -73,7 +101,7 @@
             "options": {
                 "cwd": "${fileDirname}\\.."
             },
-            "dependsOn": ["Rose Compile"],
+            "dependsOn": ["Rose Announce OK"],
             "group": {
                 "kind": "build",
             }
