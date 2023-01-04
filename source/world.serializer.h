@@ -2,7 +2,7 @@
 
 #include <rose/hash.h>
 #include <rose/typetraits.h>
-#include <serializer/serializer.h>
+#include <rose/serializer.h>
 
 ///////////////////////////////////////////////////////////////////
 //  AUTOGEN                                                      //

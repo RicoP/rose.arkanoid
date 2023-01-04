@@ -443,16 +443,16 @@ ROSE_EXPORT void draw() {
 void processPadEvent(const PadEvent & pad) {
     PadEventButton changed_button = pad.buttons ^ world.previous_pad_event.buttons;
 
-    if(!!(pad.buttons & PadEventButton::OptionRight) && !!(pad.buttons & changed_button)) {
+    if((pad.buttons & PadEventButton::OptionRight) && (pad.buttons & changed_button)) {
         switch (world.state) {
             case WorldState::Paused: world.state = WorldState::Running; break;
             case WorldState::Running: world.state = WorldState::Paused; break;
             default: break;
         }
     }
+
     world.currentStick.x = pad.stick_lx;
     world.currentStick.y = pad.stick_ly;
-
     world.previous_pad_event = pad;
 }
 
