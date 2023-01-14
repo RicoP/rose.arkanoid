@@ -610,11 +610,11 @@ namespace rose::world {
       /*           member_hash */ 1462745189867128023ULL,
       /*      memory_footprint */ sizeof(World),
       /*      memory_alignment */ 16,
+      /*                  name */ "World",
       /*  fp_default_construct */ +[](void * ptr) { new (ptr) World(); },
       /*   fp_default_destruct */ +[](void * ptr) { reinterpret_cast<World*>(ptr)->~World(); },
       /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*reinterpret_cast<World*>(ptr), s); },
-      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<World*>(ptr), d); },
-      /*                  name */ "World"
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<World*>(ptr), d); }
     };
   }
 }
