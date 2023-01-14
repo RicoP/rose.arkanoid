@@ -3,6 +3,7 @@
 #include <rose/hash.h>
 #include <rose/typetraits.h>
 #include <rose/serializer.h>
+#include <rose/world.h>
 
 ///////////////////////////////////////////////////////////////////
 //  AUTOGEN                                                      //
@@ -119,6 +120,11 @@ namespace rose {
 bool operator==(const World &lhs, const World &rhs);
 bool operator!=(const World &lhs, const World &rhs);
 
+
+namespace rose::world {
+  template <>
+  rose::reflection::TypeInfo get_type_info<World>();
+}
 
 struct                PadEventFrameTuple;
 namespace rose {
@@ -595,6 +601,24 @@ rose::hash_value rose::hash(const World &o) {
   h ^= rose::hash(o.stones);
   return h;
 }
+
+namespace rose::world {
+  template <>
+  rose::reflection::TypeInfo get_type_info<World>() {
+    return {
+      /*             unique_id */ rose::hash("World"),
+      /*           member_hash */ 1462745189867128023ULL,
+      /*      memory_footprint */ sizeof(World),
+      /*      memory_alignment */ 16,
+      /*  fp_default_construct */ +[](void * ptr) { new (ptr) World(); },
+      /*   fp_default_destruct */ +[](void * ptr) { reinterpret_cast<World*>(ptr)->~World(); },
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*reinterpret_cast<World*>(ptr), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<World*>(ptr), d); },
+      /*                  name */ "World"
+    };
+  }
+}
+
 ///////////////////////////////////////////////////////////////////
 //  struct PadEventFrameTuple
 ///////////////////////////////////////////////////////////////////
