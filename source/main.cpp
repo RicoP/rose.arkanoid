@@ -18,10 +18,11 @@
 #include "world.h"
 #include "world.serializer.h"
 
+#include <rose/world.h>
+
 #define CUTE_C2_IMPLEMENTATION
 #include "cute/cute_c2.h"
 
-World world;
 Camera3D camera = { 0 };
 float ballSpeed = .3f;
 float ballRadius = .5f;
@@ -87,11 +88,66 @@ bool equalish(Vector3 lhs, Vector3 rhs) {
     return dx < 0.001f && dy < 0.001f && dz < 0.001f;
 }
 
-void processPadEvent(const PadEvent & pad) ;
+void processPadEvent(const PadEvent & pad, World & world) ;
+
+
+bool add_new_stone (World & world) {
+    float x = -13;
+    float y = 23;
+    float xyi = 1;
+    int i = 0;
+
+    int rows_max = 15;
+    int row = 0;
+
+    Color colors[] = {RED,BLUE,YELLOW, ORANGE,GREEN};
+
+    Stone stone { {x, y, 0} };
+    for(;;) {
+        if(i < world.stones.size()) {
+            if(equalish(world.stones[i].position, stone.position)) {
+                i++;
+                stone.position.x += xyi;
+                if(stone.position.x > 13) {
+                    stone.position.x = -13;
+                    stone.position.y -= xyi;
+                    row++;
+                    if(row == rows_max) break;
+                    stone.color = colors[row % 5];
+                }
+                continue;
+            }
+        }
+        break;
+    }
+
+    if(row == rows_max) return false;
+
+    world.stones.push_back(stone);
+
+    std::sort(world.stones.begin(), world.stones.end(), [](auto & lhs, auto & rhs) {
+        if(lhs.position.y == rhs.position.y) {
+            return lhs.position.x < rhs.position.x;
+        }
+        return lhs.position.y > rhs.position.y;
+    });
+
+    return true;
+};
+
+void new_game(World & world) {
+    world.stones.clear();
+    for(int i = 0; i != 15*27; ++i) {
+        bool added = add_new_stone(world);
+        rose::unused(added);
+    }
+}
 
 ROSE_EXPORT void postload() {
+    World & world = rose::world::get<World>();
+
     // Define the camera to look into our 3d world
-    camera.position = { 0.0f, 10.0f, 35.5f }; // Camera position
+    camera.position = { 0.0f, 10.0f, 40.0f }; // Camera position
     camera.target = { 0.0f, 10.0f, 0.0f };      // Camera looking at point
     camera.up = { 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
     camera.fovy = 45.0f;                                // Camera field-of-view Y
@@ -113,10 +169,11 @@ ROSE_EXPORT void postload() {
 }
 
 ROSE_EXPORT void predestroy() {
+    World & world = rose::world::get<World>();
     rose::io::json::write(world, rose::io::Folder::Working, "game_state.json");
 }
 
-void collisionCheck() {
+void collisionCheck(World & world) {
     c2Circle pBall;
     pBall.p = toc2v(world.ballPosition);
     pBall.r = ballRadius;
@@ -147,16 +204,17 @@ void collisionCheck() {
     }), world.stones.end());
 }
 
-void reset_ball() {
+void reset_ball(World & world) {
     world.ballPosition = world.cubePosition + Vector3 {0.0f, 1.0f, 0.0f};
     float vx = rose::nextf(world.random) * 2 - 1;
     world.ballVelocity = Vector3 {vx, 1.0, 0};
 }
 
 void update() {
+    World & world = rose::world::get<World>();
     if(world.state == WorldState::Paused) return;
 
-    collisionCheck();
+    collisionCheck(world);
 
     world.cubePosition.x += world.currentStick.x;
     world.ballPosition += world.ballVelocity * ballSpeed;
@@ -171,7 +229,7 @@ void update() {
     if(world.ballPosition.y < 0) {
         world.points -= 1;
 
-        reset_ball();
+        reset_ball(world);
     }
     else if(world.ballPosition.y < 1 && world.ballVelocity.y < 0) {
         if(world.ballPosition.x > world.cubePosition.x - 2 && world.ballPosition.x < world.cubePosition.x + 2) {
@@ -187,47 +245,7 @@ void DrawCubeWiresOutline(Vector3 position, float width, float height, float len
 }
 
 ROSE_EXPORT void draw() {
-    auto add_new_stone = +[]() {
-        float x = -10;
-        float y = 17;
-        float xyi = 2;
-        int i = 0;
-
-        int rows_max = 5;
-        int row = 0;
-
-        Color colors[] = {RED,BLUE,YELLOW, ORANGE,GREEN};
-
-        Stone stone { {x, y, 0} };
-        for(;;) {
-            if(i < world.stones.size()) {
-                if(equalish(world.stones[i].position, stone.position)) {
-                    i++;
-                    stone.position.x += xyi;
-                    if(stone.position.x > 10) {
-                        stone.position.x = -10;
-                        stone.position.y -= xyi;
-                        row++;
-                        if(row == rows_max) break;
-                        stone.color = colors[row];
-                    }
-                    continue;
-                }
-            }
-            break;
-        }
-
-        if(row != rows_max) {
-            world.stones.push_back(stone);
-        }
-        std::sort(world.stones.begin(), world.stones.end(), [](auto & lhs, auto & rhs) {
-            if(lhs.position.y == rhs.position.y) {
-                return lhs.position.x < rhs.position.x;
-            }
-            return lhs.position.y > rhs.position.y;
-        });
-    };
-
+    World & world = rose::world::get<World>();
     auto do_replay = [&]() {
         auto end = std::find_if_not(
             worldrecording.padFrames.begin(), 
@@ -240,7 +258,7 @@ ROSE_EXPORT void draw() {
         for(auto it = worldrecording.padFrames.begin(); it != end; ++it, ++i) {
             if(i < skipFirst) continue;
             PadEventFrameTuple & tuple = *it;
-            processPadEvent(tuple.padEvent);
+            processPadEvent(tuple.padEvent, world);
         }
 
         skipFirst = i;
@@ -317,7 +335,8 @@ ROSE_EXPORT void draw() {
     new_build -= .1f;
 
     if(ImGui::Button("New Stone")) {
-        add_new_stone();
+        bool added = add_new_stone(world);
+        rose::unused(added);
     }
 
     if(ImGui::Button("Clear Stone")) {
@@ -336,11 +355,8 @@ ROSE_EXPORT void draw() {
         world.points = 0;
         world.random = rose::hash_from_clock();
         world.state = WorldState::Paused;
-        reset_ball();
-        world.stones.clear();
-        for(int i = 0; i != 5*11; ++i) {
-            add_new_stone();
-        }
+        reset_ball(world);
+        new_game(world);
     }
     ImGui::DragFloat("Cam Distance", &camera.position.z, .1f, 1, 100);
 
@@ -358,7 +374,6 @@ ROSE_EXPORT void draw() {
             worldrecording.state = RecordingState::RecordingStop;
         }
         ImGui::EndDisabled();
-
 
         ImGui::BeginDisabled(worldrecording.state != RecordingState::Inactive);
         if(ImGui::Button("Start Replaying")) {
@@ -394,9 +409,11 @@ ROSE_EXPORT void draw() {
     ImguiSerializer serializer;
     rose::ecs::serialize(world, serializer);
 
-    BeginDrawing();
+    //BeginDrawing();
     {
-        camera.position = { 0.0f, 10.0f, 35.5f }; // Camera position
+        //ClearBackground(DARKGRAY);
+
+        //camera.position = { 0.0f, 10.0f, 35.5f }; // Camera position
         camera.target = { 0.0f, 10.0f, 0.0f };      // Camera looking at point
         camera.up = { 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
         ImGui::DragFloat("Cam fov ", &camera.fovy);
@@ -407,11 +424,11 @@ ROSE_EXPORT void draw() {
         {
             //Paddle
             world.cubePosition.z = 2;
-            DrawCubeWiresOutline(world.cubePosition, 3.0f, 1.0f, 1.0f, YELLOW);
+            DrawCubeWiresOutline(world.cubePosition, 3.0f, 1.0f, 1.0f, GREEN);
 
             //Ball
             world.ballPosition.z = 2;
-            DrawSphere(world.ballPosition, ballRadius, PURPLE);
+            DrawSphere(world.ballPosition, ballRadius, RED);
 
             //Stones
             for(auto & stone : world.stones) {
@@ -437,10 +454,10 @@ ROSE_EXPORT void draw() {
         DrawText("- Alt + Ctrl + Mouse Wheel Pressed for Smooth Zoom", 40, 100, 10, DARKGRAY);
         DrawText("- Z to zoom to (0, 0, 0)", 40, 120, 10, DARKGRAY);
     }
-    EndDrawing();
+    //EndDrawing();
 }
 
-void processPadEvent(const PadEvent & pad) {
+void processPadEvent(const PadEvent & pad, World & world) {
     PadEventButton changed_button = pad.buttons ^ world.previous_pad_event.buttons;
 
     if((pad.buttons & PadEventButton::OptionRight) && (pad.buttons & changed_button)) {
@@ -457,6 +474,7 @@ void processPadEvent(const PadEvent & pad) {
 }
 
 ROSE_EXPORT void event(const rose::Event & ev) {
+    World & world = rose::world::get<World>();
     if(worldrecording.state == RecordingState::Inactive || worldrecording.state == RecordingState::Recording) {
         if(auto pad = ev.get<PadEvent>()) {
             if(worldrecording.state == RecordingState::Recording) {
@@ -465,7 +483,7 @@ ROSE_EXPORT void event(const rose::Event & ev) {
                 tuple.padEvent = *pad;
                 worldrecording.padFrames.push_back(tuple);
             }
-            processPadEvent(*pad);
+            processPadEvent(*pad, world);
         }
     }
 }
