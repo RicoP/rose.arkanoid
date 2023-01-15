@@ -72,6 +72,10 @@ namespace rose {
 bool operator==(const Color &lhs, const Color &rhs);
 bool operator!=(const Color &lhs, const Color &rhs);
 
+namespace rose::world {
+  template <>
+  rose::reflection::TypeInfo get_type_info<Color>();
+}
 
 namespace rose {
   namespace ecs {
@@ -86,6 +90,10 @@ namespace rose {
 bool operator==(const Vector3 &lhs, const Vector3 &rhs);
 bool operator!=(const Vector3 &lhs, const Vector3 &rhs);
 
+namespace rose::world {
+  template <>
+  rose::reflection::TypeInfo get_type_info<Vector3>();
+}
 
 struct                Stone;
 namespace rose {
@@ -103,6 +111,10 @@ namespace rose {
 bool operator==(const Stone &lhs, const Stone &rhs);
 bool operator!=(const Stone &lhs, const Stone &rhs);
 
+namespace rose::world {
+  template <>
+  rose::reflection::TypeInfo get_type_info<Stone>();
+}
 
 struct                World;
 namespace rose {
@@ -119,7 +131,6 @@ namespace rose {
 }
 bool operator==(const World &lhs, const World &rhs);
 bool operator!=(const World &lhs, const World &rhs);
-
 
 namespace rose::world {
   template <>
@@ -142,6 +153,10 @@ namespace rose {
 bool operator==(const PadEventFrameTuple &lhs, const PadEventFrameTuple &rhs);
 bool operator!=(const PadEventFrameTuple &lhs, const PadEventFrameTuple &rhs);
 
+namespace rose::world {
+  template <>
+  rose::reflection::TypeInfo get_type_info<PadEventFrameTuple>();
+}
 
 struct                WorldRecording;
 namespace rose {
@@ -159,6 +174,10 @@ namespace rose {
 bool operator==(const WorldRecording &lhs, const WorldRecording &rhs);
 bool operator!=(const WorldRecording &lhs, const WorldRecording &rhs);
 
+namespace rose::world {
+  template <>
+  rose::reflection::TypeInfo get_type_info<WorldRecording>();
+}
 
 #ifdef IMPL_SERIALIZER
 
@@ -397,6 +416,24 @@ rose::hash_value rose::hash(const Color &o) {
   h ^= rose::hash(o.a);
   return h;
 }
+
+namespace rose::world {
+  template <>
+  rose::reflection::TypeInfo get_type_info<Color>() {
+    return {
+      /*             unique_id */ rose::hash("Color"),
+      /*           member_hash */ 11375897551430744876ULL,
+      /*      memory_footprint */ sizeof(Color),
+      /*      memory_alignment */ 16,
+      /*                  name */ "Color",
+      /*  fp_default_construct */ +[](void * ptr) { new (ptr) Color(); },
+      /*   fp_default_destruct */ +[](void * ptr) { reinterpret_cast<Color*>(ptr)->~Color(); },
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*reinterpret_cast<Color*>(ptr), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<Color*>(ptr), d); }
+    };
+  }
+}
+
 ///////////////////////////////////////////////////////////////////
 //  struct Vector3
 ///////////////////////////////////////////////////////////////////
@@ -422,6 +459,24 @@ rose::hash_value rose::hash(const Vector3 &o) {
   h ^= rose::hash(o.z);
   return h;
 }
+
+namespace rose::world {
+  template <>
+  rose::reflection::TypeInfo get_type_info<Vector3>() {
+    return {
+      /*             unique_id */ rose::hash("Vector3"),
+      /*           member_hash */ 865855757241434760ULL,
+      /*      memory_footprint */ sizeof(Vector3),
+      /*      memory_alignment */ 16,
+      /*                  name */ "Vector3",
+      /*  fp_default_construct */ +[](void * ptr) { new (ptr) Vector3(); },
+      /*   fp_default_destruct */ +[](void * ptr) { reinterpret_cast<Vector3*>(ptr)->~Vector3(); },
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*reinterpret_cast<Vector3*>(ptr), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<Vector3*>(ptr), d); }
+    };
+  }
+}
+
 ///////////////////////////////////////////////////////////////////
 //  struct Stone
 ///////////////////////////////////////////////////////////////////
@@ -489,6 +544,24 @@ rose::hash_value rose::hash(const Stone &o) {
   h ^= rose::hash(o.state);
   return h;
 }
+
+namespace rose::world {
+  template <>
+  rose::reflection::TypeInfo get_type_info<Stone>() {
+    return {
+      /*             unique_id */ rose::hash("Stone"),
+      /*           member_hash */ 1551552509579347363ULL,
+      /*      memory_footprint */ sizeof(Stone),
+      /*      memory_alignment */ 16,
+      /*                  name */ "Stone",
+      /*  fp_default_construct */ +[](void * ptr) { new (ptr) Stone(); },
+      /*   fp_default_destruct */ +[](void * ptr) { reinterpret_cast<Stone*>(ptr)->~Stone(); },
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*reinterpret_cast<Stone*>(ptr), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<Stone*>(ptr), d); }
+    };
+  }
+}
+
 ///////////////////////////////////////////////////////////////////
 //  struct World
 ///////////////////////////////////////////////////////////////////
@@ -668,6 +741,24 @@ rose::hash_value rose::hash(const PadEventFrameTuple &o) {
   h ^= rose::hash(o.frame);
   return h;
 }
+
+namespace rose::world {
+  template <>
+  rose::reflection::TypeInfo get_type_info<PadEventFrameTuple>() {
+    return {
+      /*             unique_id */ rose::hash("PadEventFrameTuple"),
+      /*           member_hash */ 7765748126551423679ULL,
+      /*      memory_footprint */ sizeof(PadEventFrameTuple),
+      /*      memory_alignment */ 16,
+      /*                  name */ "PadEventFrameTuple",
+      /*  fp_default_construct */ +[](void * ptr) { new (ptr) PadEventFrameTuple(); },
+      /*   fp_default_destruct */ +[](void * ptr) { reinterpret_cast<PadEventFrameTuple*>(ptr)->~PadEventFrameTuple(); },
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*reinterpret_cast<PadEventFrameTuple*>(ptr), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<PadEventFrameTuple*>(ptr), d); }
+    };
+  }
+}
+
 ///////////////////////////////////////////////////////////////////
 //  struct WorldRecording
 ///////////////////////////////////////////////////////////////////
@@ -744,5 +835,23 @@ rose::hash_value rose::hash(const WorldRecording &o) {
   h ^= rose::hash(o.state);
   return h;
 }
+
+namespace rose::world {
+  template <>
+  rose::reflection::TypeInfo get_type_info<WorldRecording>() {
+    return {
+      /*             unique_id */ rose::hash("WorldRecording"),
+      /*           member_hash */ 15755819351817888067ULL,
+      /*      memory_footprint */ sizeof(WorldRecording),
+      /*      memory_alignment */ 16,
+      /*                  name */ "WorldRecording",
+      /*  fp_default_construct */ +[](void * ptr) { new (ptr) WorldRecording(); },
+      /*   fp_default_destruct */ +[](void * ptr) { reinterpret_cast<WorldRecording*>(ptr)->~WorldRecording(); },
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*reinterpret_cast<WorldRecording*>(ptr), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<WorldRecording*>(ptr), d); }
+    };
+  }
+}
+
 
 #endif
