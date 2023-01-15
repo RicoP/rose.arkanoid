@@ -125,7 +125,7 @@ namespace rose {
   hash_value         hash(const World &o);
   template<>
   struct type_id<World> {
-    inline static hash_value VALUE = 1462745189867128023ULL;
+    inline static hash_value VALUE = 359572207206739926ULL;
   };
   void construct_defaults(      World &o); // implement me
 }
@@ -573,6 +573,7 @@ bool operator==(const World &lhs, const World &rhs) {
     rose_parser_equals(lhs.currentStick, rhs.currentStick) &&
     rose_parser_equals(lhs.random, rhs.random) &&
     rose_parser_equals(lhs.points, rhs.points) &&
+    rose_parser_equals(lhs.lifes, rhs.lifes) &&
     rose_parser_equals(lhs.previous_pad_event, rhs.previous_pad_event) &&
     rose_parser_equals(lhs.state, rhs.state) &&
     rose_parser_equals(lhs.stones, rhs.stones) ;
@@ -586,6 +587,7 @@ bool operator!=(const World &lhs, const World &rhs) {
     !rose_parser_equals(lhs.currentStick, rhs.currentStick) ||
     !rose_parser_equals(lhs.random, rhs.random) ||
     !rose_parser_equals(lhs.points, rhs.points) ||
+    !rose_parser_equals(lhs.lifes, rhs.lifes) ||
     !rose_parser_equals(lhs.previous_pad_event, rhs.previous_pad_event) ||
     !rose_parser_equals(lhs.state, rhs.state) ||
     !rose_parser_equals(lhs.stones, rhs.stones) ;
@@ -605,6 +607,8 @@ void rose::ecs::serialize(World &o, ISerializer &s) {
     serialize(o.random, s);
     s.key("points");
     serialize(o.points, s);
+    s.key("lifes");
+    serialize(o.lifes, s);
     s.key("previous_pad_event");
     serialize(o.previous_pad_event, s);
     s.key("state");
@@ -640,6 +644,9 @@ void rose::ecs::deserialize(World &o, IDeserializer &s) {
       case rose::hash("points"):
         deserialize(o.points, s);
         break;
+      case rose::hash("lifes"):
+        deserialize(o.lifes, s);
+        break;
       case rose::hash("previous_pad_event"):
         deserialize(o.previous_pad_event, s);
         break;
@@ -667,6 +674,8 @@ rose::hash_value rose::hash(const World &o) {
   h = rose::xor64(h);
   h ^= rose::hash(o.points);
   h = rose::xor64(h);
+  h ^= rose::hash(o.lifes);
+  h = rose::xor64(h);
   h ^= rose::hash(o.previous_pad_event);
   h = rose::xor64(h);
   h ^= rose::hash(o.state);
@@ -680,7 +689,7 @@ namespace rose::world {
   rose::reflection::TypeInfo get_type_info<World>() {
     return {
       /*             unique_id */ rose::hash("World"),
-      /*           member_hash */ 1462745189867128023ULL,
+      /*           member_hash */ 359572207206739926ULL,
       /*      memory_footprint */ sizeof(World),
       /*      memory_alignment */ 16,
       /*                  name */ "World",

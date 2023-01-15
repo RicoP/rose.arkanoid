@@ -96,9 +96,10 @@ struct World {
 
   rose::hash_value random = 0;
   int points = 0;
+  int lifes = 10;
 
   PadEvent previous_pad_event;
-  WorldState state = WorldState::NewGame;
+  WorldState state = WorldState::Running;
   std::vector<Stone> stones;
 };
 
