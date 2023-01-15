@@ -12,6 +12,9 @@ recording.json
 #Imgui
 imgui.ini
 
+#VSCode
+.vscode/settings.json
+
 # Prerequisites
 *.d
 
