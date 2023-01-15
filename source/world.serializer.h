@@ -72,7 +72,7 @@ namespace rose {
 bool operator==(const Color &lhs, const Color &rhs);
 bool operator!=(const Color &lhs, const Color &rhs);
 
-namespace rose::world {
+namespace rose::reflection {
   template <>
   rose::reflection::TypeInfo get_type_info<Color>();
 }
@@ -90,7 +90,7 @@ namespace rose {
 bool operator==(const Vector3 &lhs, const Vector3 &rhs);
 bool operator!=(const Vector3 &lhs, const Vector3 &rhs);
 
-namespace rose::world {
+namespace rose::reflection {
   template <>
   rose::reflection::TypeInfo get_type_info<Vector3>();
 }
@@ -111,7 +111,7 @@ namespace rose {
 bool operator==(const Stone &lhs, const Stone &rhs);
 bool operator!=(const Stone &lhs, const Stone &rhs);
 
-namespace rose::world {
+namespace rose::reflection {
   template <>
   rose::reflection::TypeInfo get_type_info<Stone>();
 }
@@ -132,7 +132,7 @@ namespace rose {
 bool operator==(const World &lhs, const World &rhs);
 bool operator!=(const World &lhs, const World &rhs);
 
-namespace rose::world {
+namespace rose::reflection {
   template <>
   rose::reflection::TypeInfo get_type_info<World>();
 }
@@ -153,7 +153,7 @@ namespace rose {
 bool operator==(const PadEventFrameTuple &lhs, const PadEventFrameTuple &rhs);
 bool operator!=(const PadEventFrameTuple &lhs, const PadEventFrameTuple &rhs);
 
-namespace rose::world {
+namespace rose::reflection {
   template <>
   rose::reflection::TypeInfo get_type_info<PadEventFrameTuple>();
 }
@@ -174,7 +174,7 @@ namespace rose {
 bool operator==(const WorldRecording &lhs, const WorldRecording &rhs);
 bool operator!=(const WorldRecording &lhs, const WorldRecording &rhs);
 
-namespace rose::world {
+namespace rose::reflection {
   template <>
   rose::reflection::TypeInfo get_type_info<WorldRecording>();
 }
@@ -417,7 +417,7 @@ rose::hash_value rose::hash(const Color &o) {
   return h;
 }
 
-namespace rose::world {
+namespace rose::reflection {
   template <>
   rose::reflection::TypeInfo get_type_info<Color>() {
     return {
@@ -460,7 +460,7 @@ rose::hash_value rose::hash(const Vector3 &o) {
   return h;
 }
 
-namespace rose::world {
+namespace rose::reflection {
   template <>
   rose::reflection::TypeInfo get_type_info<Vector3>() {
     return {
@@ -545,7 +545,7 @@ rose::hash_value rose::hash(const Stone &o) {
   return h;
 }
 
-namespace rose::world {
+namespace rose::reflection {
   template <>
   rose::reflection::TypeInfo get_type_info<Stone>() {
     return {
@@ -684,7 +684,7 @@ rose::hash_value rose::hash(const World &o) {
   return h;
 }
 
-namespace rose::world {
+namespace rose::reflection {
   template <>
   rose::reflection::TypeInfo get_type_info<World>() {
     return {
@@ -751,7 +751,7 @@ rose::hash_value rose::hash(const PadEventFrameTuple &o) {
   return h;
 }
 
-namespace rose::world {
+namespace rose::reflection {
   template <>
   rose::reflection::TypeInfo get_type_info<PadEventFrameTuple>() {
     return {
@@ -845,7 +845,7 @@ rose::hash_value rose::hash(const WorldRecording &o) {
   return h;
 }
 
-namespace rose::world {
+namespace rose::reflection {
   template <>
   rose::reflection::TypeInfo get_type_info<WorldRecording>() {
     return {
