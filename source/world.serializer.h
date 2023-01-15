@@ -1,5 +1,6 @@
 #pragma once
 
+#include <new>
 #include <rose/hash.h>
 #include <rose/typetraits.h>
 #include <rose/serializer.h>
@@ -74,7 +75,7 @@ bool operator!=(const Color &lhs, const Color &rhs);
 
 namespace rose::reflection {
   template <>
-  rose::reflection::TypeInfo get_type_info<Color>();
+  const rose::reflection::TypeInfo & get_type_info<Color>();
 }
 
 namespace rose {
@@ -92,7 +93,7 @@ bool operator!=(const Vector3 &lhs, const Vector3 &rhs);
 
 namespace rose::reflection {
   template <>
-  rose::reflection::TypeInfo get_type_info<Vector3>();
+  const rose::reflection::TypeInfo & get_type_info<Vector3>();
 }
 
 struct                Stone;
@@ -113,7 +114,7 @@ bool operator!=(const Stone &lhs, const Stone &rhs);
 
 namespace rose::reflection {
   template <>
-  rose::reflection::TypeInfo get_type_info<Stone>();
+  const rose::reflection::TypeInfo & get_type_info<Stone>();
 }
 
 struct                World;
@@ -134,7 +135,7 @@ bool operator!=(const World &lhs, const World &rhs);
 
 namespace rose::reflection {
   template <>
-  rose::reflection::TypeInfo get_type_info<World>();
+  const rose::reflection::TypeInfo & get_type_info<World>();
 }
 
 struct                PadEventFrameTuple;
@@ -155,7 +156,7 @@ bool operator!=(const PadEventFrameTuple &lhs, const PadEventFrameTuple &rhs);
 
 namespace rose::reflection {
   template <>
-  rose::reflection::TypeInfo get_type_info<PadEventFrameTuple>();
+  const rose::reflection::TypeInfo & get_type_info<PadEventFrameTuple>();
 }
 
 struct                WorldRecording;
@@ -176,7 +177,7 @@ bool operator!=(const WorldRecording &lhs, const WorldRecording &rhs);
 
 namespace rose::reflection {
   template <>
-  rose::reflection::TypeInfo get_type_info<WorldRecording>();
+  const rose::reflection::TypeInfo & get_type_info<WorldRecording>();
 }
 
 #ifdef IMPL_SERIALIZER
@@ -419,18 +420,19 @@ rose::hash_value rose::hash(const Color &o) {
 
 namespace rose::reflection {
   template <>
-  rose::reflection::TypeInfo get_type_info<Color>() {
-    return {
+  const rose::reflection::TypeInfo & get_type_info<Color>() {
+    static rose::reflection::TypeInfo info = {
       /*             unique_id */ rose::hash("Color"),
       /*           member_hash */ 11375897551430744876ULL,
       /*      memory_footprint */ sizeof(Color),
       /*      memory_alignment */ 16,
       /*                  name */ "Color",
       /*  fp_default_construct */ +[](void * ptr) { new (ptr) Color(); },
-      /*   fp_default_destruct */ +[](void * ptr) { reinterpret_cast<Color*>(ptr)->~Color(); },
-      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*reinterpret_cast<Color*>(ptr), s); },
-      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<Color*>(ptr), d); }
+      /*   fp_default_destruct */ +[](void * ptr) { std::launder(reinterpret_cast<Color*>(ptr))->~Color(); },
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*std::launder(reinterpret_cast<Color*>(ptr)), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*std::launder(reinterpret_cast<Color*>(ptr)), d); }
     };
+    return info;
   }
 }
 
@@ -462,18 +464,19 @@ rose::hash_value rose::hash(const Vector3 &o) {
 
 namespace rose::reflection {
   template <>
-  rose::reflection::TypeInfo get_type_info<Vector3>() {
-    return {
+  const rose::reflection::TypeInfo & get_type_info<Vector3>() {
+    static rose::reflection::TypeInfo info = {
       /*             unique_id */ rose::hash("Vector3"),
       /*           member_hash */ 865855757241434760ULL,
       /*      memory_footprint */ sizeof(Vector3),
       /*      memory_alignment */ 16,
       /*                  name */ "Vector3",
       /*  fp_default_construct */ +[](void * ptr) { new (ptr) Vector3(); },
-      /*   fp_default_destruct */ +[](void * ptr) { reinterpret_cast<Vector3*>(ptr)->~Vector3(); },
-      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*reinterpret_cast<Vector3*>(ptr), s); },
-      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<Vector3*>(ptr), d); }
+      /*   fp_default_destruct */ +[](void * ptr) { std::launder(reinterpret_cast<Vector3*>(ptr))->~Vector3(); },
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*std::launder(reinterpret_cast<Vector3*>(ptr)), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*std::launder(reinterpret_cast<Vector3*>(ptr)), d); }
     };
+    return info;
   }
 }
 
@@ -547,18 +550,19 @@ rose::hash_value rose::hash(const Stone &o) {
 
 namespace rose::reflection {
   template <>
-  rose::reflection::TypeInfo get_type_info<Stone>() {
-    return {
+  const rose::reflection::TypeInfo & get_type_info<Stone>() {
+    static rose::reflection::TypeInfo info = {
       /*             unique_id */ rose::hash("Stone"),
       /*           member_hash */ 1551552509579347363ULL,
       /*      memory_footprint */ sizeof(Stone),
       /*      memory_alignment */ 16,
       /*                  name */ "Stone",
       /*  fp_default_construct */ +[](void * ptr) { new (ptr) Stone(); },
-      /*   fp_default_destruct */ +[](void * ptr) { reinterpret_cast<Stone*>(ptr)->~Stone(); },
-      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*reinterpret_cast<Stone*>(ptr), s); },
-      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<Stone*>(ptr), d); }
+      /*   fp_default_destruct */ +[](void * ptr) { std::launder(reinterpret_cast<Stone*>(ptr))->~Stone(); },
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*std::launder(reinterpret_cast<Stone*>(ptr)), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*std::launder(reinterpret_cast<Stone*>(ptr)), d); }
     };
+    return info;
   }
 }
 
@@ -686,18 +690,19 @@ rose::hash_value rose::hash(const World &o) {
 
 namespace rose::reflection {
   template <>
-  rose::reflection::TypeInfo get_type_info<World>() {
-    return {
+  const rose::reflection::TypeInfo & get_type_info<World>() {
+    static rose::reflection::TypeInfo info = {
       /*             unique_id */ rose::hash("World"),
       /*           member_hash */ 359572207206739926ULL,
       /*      memory_footprint */ sizeof(World),
       /*      memory_alignment */ 16,
       /*                  name */ "World",
       /*  fp_default_construct */ +[](void * ptr) { new (ptr) World(); },
-      /*   fp_default_destruct */ +[](void * ptr) { reinterpret_cast<World*>(ptr)->~World(); },
-      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*reinterpret_cast<World*>(ptr), s); },
-      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<World*>(ptr), d); }
+      /*   fp_default_destruct */ +[](void * ptr) { std::launder(reinterpret_cast<World*>(ptr))->~World(); },
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*std::launder(reinterpret_cast<World*>(ptr)), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*std::launder(reinterpret_cast<World*>(ptr)), d); }
     };
+    return info;
   }
 }
 
@@ -753,18 +758,19 @@ rose::hash_value rose::hash(const PadEventFrameTuple &o) {
 
 namespace rose::reflection {
   template <>
-  rose::reflection::TypeInfo get_type_info<PadEventFrameTuple>() {
-    return {
+  const rose::reflection::TypeInfo & get_type_info<PadEventFrameTuple>() {
+    static rose::reflection::TypeInfo info = {
       /*             unique_id */ rose::hash("PadEventFrameTuple"),
       /*           member_hash */ 7765748126551423679ULL,
       /*      memory_footprint */ sizeof(PadEventFrameTuple),
       /*      memory_alignment */ 16,
       /*                  name */ "PadEventFrameTuple",
       /*  fp_default_construct */ +[](void * ptr) { new (ptr) PadEventFrameTuple(); },
-      /*   fp_default_destruct */ +[](void * ptr) { reinterpret_cast<PadEventFrameTuple*>(ptr)->~PadEventFrameTuple(); },
-      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*reinterpret_cast<PadEventFrameTuple*>(ptr), s); },
-      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<PadEventFrameTuple*>(ptr), d); }
+      /*   fp_default_destruct */ +[](void * ptr) { std::launder(reinterpret_cast<PadEventFrameTuple*>(ptr))->~PadEventFrameTuple(); },
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*std::launder(reinterpret_cast<PadEventFrameTuple*>(ptr)), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*std::launder(reinterpret_cast<PadEventFrameTuple*>(ptr)), d); }
     };
+    return info;
   }
 }
 
@@ -847,18 +853,19 @@ rose::hash_value rose::hash(const WorldRecording &o) {
 
 namespace rose::reflection {
   template <>
-  rose::reflection::TypeInfo get_type_info<WorldRecording>() {
-    return {
+  const rose::reflection::TypeInfo & get_type_info<WorldRecording>() {
+    static rose::reflection::TypeInfo info = {
       /*             unique_id */ rose::hash("WorldRecording"),
       /*           member_hash */ 15755819351817888067ULL,
       /*      memory_footprint */ sizeof(WorldRecording),
       /*      memory_alignment */ 16,
       /*                  name */ "WorldRecording",
       /*  fp_default_construct */ +[](void * ptr) { new (ptr) WorldRecording(); },
-      /*   fp_default_destruct */ +[](void * ptr) { reinterpret_cast<WorldRecording*>(ptr)->~WorldRecording(); },
-      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*reinterpret_cast<WorldRecording*>(ptr), s); },
-      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*reinterpret_cast<WorldRecording*>(ptr), d); }
+      /*   fp_default_destruct */ +[](void * ptr) { std::launder(reinterpret_cast<WorldRecording*>(ptr))->~WorldRecording(); },
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*std::launder(reinterpret_cast<WorldRecording*>(ptr)), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*std::launder(reinterpret_cast<WorldRecording*>(ptr)), d); }
     };
+    return info;
   }
 }
 
