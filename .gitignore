@@ -8,6 +8,7 @@ game_state.json
 quicksafe.json
 roseoptions.json
 recording.json
+*.tmp
 
 #Imgui
 imgui.ini
