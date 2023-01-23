@@ -90,40 +90,17 @@ struct Stone {
 
 struct World {
   Vector3 cubePosition = { 0,0,0 };
+  Vector3 currentStick = { 0,0,0 };
   Vector3 ballPosition = { 0,1,0 };
   Vector3 ballVelocity = { 1,1,0 };
-  Vector3 currentStick = { 0,0,0 };
+  Color ballColor = RED;
 
   rose::hash_value random = 0;
   int points = 0;
   int lifes = 10;
+  int lifes2 = 10;
 
   PadEvent previous_pad_event;
   WorldState state = WorldState::Running;
   std::vector<Stone> stones;
-};
-
-struct PadEventFrameTuple {
-  PadEvent padEvent;
-  int frame = -1;
-};
-
-enum class RecordingState : int {
-    Inactive = 0,
-    RecordingStart,
-    Recording,
-    RecordingStop,
-
-    ReplayingStart,
-    Replaying,
-    ReplayingSeek,
-    ReplayingStop,
-};
-
-struct WorldRecording {
-  World startworld;
-  int replayFrame = 0;
-  int totalFrames = 0;
-  std::vector<PadEventFrameTuple> padFrames;
-  RecordingState state = RecordingState::Inactive;
 };

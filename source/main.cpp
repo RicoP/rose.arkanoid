@@ -24,11 +24,9 @@
 #include "cute/cute_c2.h"
 
 Camera3D camera = { 0 };
-float ballSpeed = .3f;
+float ballSpeed = .15f;
 float ballRadius = .5f;
 Texture2D cubeTexture;
-
-WorldRecording worldrecording;
 
 static Vector3 operator*(Vector3 lhs, float rhs) {
     lhs.x *= rhs;
@@ -208,9 +206,27 @@ void reset_ball(World & world) {
     world.ballPosition = world.cubePosition + Vector3 {0.0f, 1.0f, 0.0f};
     float vx = rose::nextf(world.random) * 2 - 1;
     world.ballVelocity = Vector3 {vx, 1.0, 0};
+
+    static Color colors[] {
+      YELLOW     ,
+      GOLD       ,
+      ORANGE     ,
+      PINK       ,
+      RED        ,
+      MAROON     ,
+      GREEN      ,
+      DARKGREEN  ,
+      SKYBLUE    ,
+      DARKBLUE   ,
+      PURPLE     ,
+      DARKPURPLE ,
+    };
+
+    int i = rose::next_range(world.random, 0, std::size(colors));
+    world.ballColor = colors[i];
 }
 
-void update() {
+ROSE_EXPORT void update() {
     World & world = rose::world::get<World>();
     if(world.state == WorldState::Paused) return;
 
@@ -244,92 +260,9 @@ void DrawCubeWiresOutline(Vector3 position, float width, float height, float len
     DrawCubeTexture(cubeTexture, position, width, height, length, color);
 }
 
-ROSE_EXPORT void draw() {
+ROSE_EXPORT void draw() {    
     World & world = rose::world::get<World>();
-    auto do_replay = [&]() {
-        auto end = std::find_if_not(
-            worldrecording.padFrames.begin(), 
-            worldrecording.padFrames.end(), 
-            [&](const PadEventFrameTuple & tuple) { return tuple.frame <= worldrecording.replayFrame; }
-        );
-
-        static int skipFirst = 0;
-        int i = 0;
-        for(auto it = worldrecording.padFrames.begin(); it != end; ++it, ++i) {
-            if(i < skipFirst) continue;
-            PadEventFrameTuple & tuple = *it;
-            processPadEvent(tuple.padEvent, world);
-        }
-
-        skipFirst = i;
-
-        if(worldrecording.replayFrame == worldrecording.totalFrames) {
-            worldrecording.state = RecordingState::ReplayingStop;
-        }
-    };
-
-    switch (worldrecording.state)
-    {
-    case RecordingState::Inactive:
-        break;
-
-    case RecordingState::RecordingStart:
-        worldrecording.startworld = world;
-        worldrecording.replayFrame = 0;
-        worldrecording.padFrames.clear();
-        worldrecording.state = RecordingState::Recording;
-        [[fallthrough]];
-    case RecordingState::Recording:
-        break;
-    
-    case RecordingState::RecordingStop:
-        worldrecording.totalFrames = worldrecording.replayFrame;
-        rose::io::json::write(worldrecording, rose::io::Folder::Working, "recording.json");
-        worldrecording.state = RecordingState::Inactive;
-        break;
-    
-    case RecordingState::ReplayingStart:
-        {
-            bool found = rose::io::json::read(worldrecording, rose::io::Folder::Working, "recording.json");
-            if(found) {
-                world = worldrecording.startworld;
-                worldrecording.replayFrame = 0;
-                worldrecording.state = RecordingState::Replaying;
-            }
-            else {
-                worldrecording.state = RecordingState::Inactive;
-            }
-        }
-        [[fallthrough]];
-    case RecordingState::Replaying:
-        do_replay();
-        break;
-    case RecordingState::ReplayingSeek:
-        {
-            int goalFrame = worldrecording.replayFrame;
-            worldrecording.replayFrame = 0;
-            world = worldrecording.startworld;
-            while(worldrecording.replayFrame < goalFrame) {
-                do_replay();
-                update();
-                worldrecording.replayFrame++;
-            }
-            worldrecording.state = RecordingState::Replaying;        
-        }
-        break;
-    case RecordingState::ReplayingStop:
-        worldrecording.state = RecordingState::Inactive;
-        break;
-
-    default:
-        break;
-    }
-
-    update();
-    if(worldrecording.state == RecordingState::Recording || worldrecording.state == RecordingState::Replaying) {
-        worldrecording.replayFrame++;
-    }
-
+ 
     static float new_build = 7;
     ImGui::LabelText("Build Time", "%s %s", __TIME__, new_build > 0 ? "NEW BUILD!" : "");
     new_build -= .1f;
@@ -360,50 +293,6 @@ ROSE_EXPORT void draw() {
     }
     ImGui::DragFloat("Cam Distance", &camera.position.z, .1f, 1, 100);
 
-
-    ImGui::Separator();
-    if(ImGui::TreeNode("Recording")) {
-        ImGui::BeginDisabled(worldrecording.state != RecordingState::Inactive);
-        if(ImGui::Button("Start Recording")) {
-            worldrecording.state = RecordingState::RecordingStart;
-        }
-        ImGui::EndDisabled();
-
-        ImGui::BeginDisabled(worldrecording.state != RecordingState::Recording);
-        if(ImGui::Button("Stop Recording")) {
-            worldrecording.state = RecordingState::RecordingStop;
-        }
-        ImGui::EndDisabled();
-
-        ImGui::BeginDisabled(worldrecording.state != RecordingState::Inactive);
-        if(ImGui::Button("Start Replaying")) {
-            worldrecording.state = RecordingState::ReplayingStart;
-        }
-        ImGui::EndDisabled();
-
-        ImGui::BeginDisabled(worldrecording.state != RecordingState::Replaying);
-        if(ImGui::Button("Stop Replaying")) {
-            worldrecording.state = RecordingState::ReplayingStop;
-        }
-        ImGui::EndDisabled();
-        
-        if(worldrecording.state == RecordingState::Replaying) {
-            float progress = (float)worldrecording.replayFrame / (float)worldrecording.totalFrames;
-            
-            char buffer[64];
-            std::sprintf(buffer, "%d/%d", worldrecording.replayFrame, worldrecording.totalFrames);
-            ImGui::ProgressBar(progress, ImVec2(0.f, 0.f), buffer);
-
-            int frame = worldrecording.replayFrame;
-            if(ImGui::SliderInt("Progress", &frame, 0, worldrecording.totalFrames, buffer)) {
-                worldrecording.state = RecordingState::ReplayingSeek;
-                worldrecording.replayFrame = frame;
-            }
-        }
-
-        ImGui::TreePop();
-    }
-
     ImGui::Separator();
 
     ImguiSerializer serializer;
@@ -428,7 +317,7 @@ ROSE_EXPORT void draw() {
 
             //Ball
             world.ballPosition.z = 2;
-            DrawSphere(world.ballPosition, ballRadius, RED);
+            DrawSphere(world.ballPosition, ballRadius, world.ballColor);
 
             //Stones
             for(auto & stone : world.stones) {
@@ -457,38 +346,24 @@ ROSE_EXPORT void draw() {
     //EndDrawing();
 }
 
-void processPadEvent(const PadEvent & pad, World & world) {
-    PadEventButton changed_button = pad.buttons ^ world.previous_pad_event.buttons;
-
-    if((pad.buttons & PadEventButton::OptionRight) && (pad.buttons & changed_button)) {
-        switch (world.state) {
-            case WorldState::Paused: world.state = WorldState::Running; break;
-            case WorldState::Running: world.state = WorldState::Paused; break;
-            default: break;
-        }
-    }
-
-    world.currentStick.x = pad.stick_lx;
-    world.currentStick.y = pad.stick_ly;
-    world.previous_pad_event = pad;
-}
-
 ROSE_EXPORT void event(const rose::Event & ev) {
-    World & world = rose::world::get<World>();
-    if(worldrecording.state == RecordingState::Inactive || worldrecording.state == RecordingState::Recording) {
-        if(auto pad = ev.get<PadEvent>()) {
-            if(worldrecording.state == RecordingState::Recording) {
-                PadEventFrameTuple tuple;
-                tuple.frame = worldrecording.replayFrame;
-                tuple.padEvent = *pad;
-                worldrecording.padFrames.push_back(tuple);
-            }
-            processPadEvent(*pad, world);
-        }
-    }
-}
+    if(auto pad = ev.get<PadEvent>()) {
+        World & world = rose::world::get<World>();
+        
+        PadEventButton changed_button = pad->buttons ^ world.previous_pad_event.buttons;
 
-ROSE_EXPORT void ui() {
+        if((pad->buttons & PadEventButton::OptionRight) && (pad->buttons & changed_button)) {
+            switch (world.state) {
+                case WorldState::Paused: world.state = WorldState::Running; break;
+                case WorldState::Running: world.state = WorldState::Paused; break;
+                default: break;
+            }
+        }
+
+        world.currentStick.x = pad->stick_lx;
+        world.currentStick.y = pad->stick_ly;
+        world.previous_pad_event = *pad;
+    }
 }
 
 #include <rose/engine.hpp>

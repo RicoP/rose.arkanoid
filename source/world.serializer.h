@@ -44,22 +44,6 @@ namespace rose {
 }
 
 
-enum class                   RecordingState : int ;
-const char * to_string(const RecordingState &);
-namespace rose {
-  namespace ecs {
-    void      deserialize(RecordingState &o, IDeserializer &s);
-    void        serialize(RecordingState &o, ISerializer &s);
-  }
-  template<>
-  struct type_id<RecordingState> {
-    inline static hash_value VALUE = 12895677666688842227ULL;
-  };
-  hash_value         hash(const RecordingState &o);
-  void construct_defaults(      RecordingState &o); //implement me
-}
-
-
 namespace rose {
   namespace ecs {
   }
@@ -126,7 +110,7 @@ namespace rose {
   hash_value         hash(const World &o);
   template<>
   struct type_id<World> {
-    inline static hash_value VALUE = 359572207206739926ULL;
+    inline static hash_value VALUE = 6205194912455769452ULL;
   };
   void construct_defaults(      World &o); // implement me
 }
@@ -136,48 +120,6 @@ bool operator!=(const World &lhs, const World &rhs);
 namespace rose::reflection {
   template <>
   const rose::reflection::TypeInfo & get_type_info<World>();
-}
-
-struct                PadEventFrameTuple;
-namespace rose {
-  namespace ecs {
-    void        serialize(PadEventFrameTuple &o, ISerializer &s);
-    void      deserialize(PadEventFrameTuple &o, IDeserializer &s);
-  }
-  hash_value         hash(const PadEventFrameTuple &o);
-  template<>
-  struct type_id<PadEventFrameTuple> {
-    inline static hash_value VALUE = 7765748126551423679ULL;
-  };
-  void construct_defaults(      PadEventFrameTuple &o); // implement me
-}
-bool operator==(const PadEventFrameTuple &lhs, const PadEventFrameTuple &rhs);
-bool operator!=(const PadEventFrameTuple &lhs, const PadEventFrameTuple &rhs);
-
-namespace rose::reflection {
-  template <>
-  const rose::reflection::TypeInfo & get_type_info<PadEventFrameTuple>();
-}
-
-struct                WorldRecording;
-namespace rose {
-  namespace ecs {
-    void        serialize(WorldRecording &o, ISerializer &s);
-    void      deserialize(WorldRecording &o, IDeserializer &s);
-  }
-  hash_value         hash(const WorldRecording &o);
-  template<>
-  struct type_id<WorldRecording> {
-    inline static hash_value VALUE = 15755819351817888067ULL;
-  };
-  void construct_defaults(      WorldRecording &o); // implement me
-}
-bool operator==(const WorldRecording &lhs, const WorldRecording &rhs);
-bool operator!=(const WorldRecording &lhs, const WorldRecording &rhs);
-
-namespace rose::reflection {
-  template <>
-  const rose::reflection::TypeInfo & get_type_info<WorldRecording>();
 }
 
 #ifdef IMPL_SERIALIZER
@@ -307,84 +249,6 @@ void rose::ecs::deserialize(WorldState& o, IDeserializer& s) {
   }
 }
 rose::hash_value       rose::hash(const WorldState& o) {
-  return static_cast<rose::hash_value>(o);
-}
-
-const char * to_string(const RecordingState & e) {
-    switch(e) {
-        case RecordingState::Inactive: return "Inactive";
-        case RecordingState::RecordingStart: return "RecordingStart";
-        case RecordingState::Recording: return "Recording";
-        case RecordingState::RecordingStop: return "RecordingStop";
-        case RecordingState::ReplayingStart: return "ReplayingStart";
-        case RecordingState::Replaying: return "Replaying";
-        case RecordingState::ReplayingSeek: return "ReplayingSeek";
-        case RecordingState::ReplayingStop: return "ReplayingStop";
-        default: return "<UNKNOWN>";
-    }
-}
-void rose::ecs::serialize(RecordingState& o, ISerializer& s) {
-  switch (o) {
-    case RecordingState::Inactive: {
-      char str[] = "Inactive";
-      serialize(str, s);
-      break;
-    }
-    case RecordingState::RecordingStart: {
-      char str[] = "RecordingStart";
-      serialize(str, s);
-      break;
-    }
-    case RecordingState::Recording: {
-      char str[] = "Recording";
-      serialize(str, s);
-      break;
-    }
-    case RecordingState::RecordingStop: {
-      char str[] = "RecordingStop";
-      serialize(str, s);
-      break;
-    }
-    case RecordingState::ReplayingStart: {
-      char str[] = "ReplayingStart";
-      serialize(str, s);
-      break;
-    }
-    case RecordingState::Replaying: {
-      char str[] = "Replaying";
-      serialize(str, s);
-      break;
-    }
-    case RecordingState::ReplayingSeek: {
-      char str[] = "ReplayingSeek";
-      serialize(str, s);
-      break;
-    }
-    case RecordingState::ReplayingStop: {
-      char str[] = "ReplayingStop";
-      serialize(str, s);
-      break;
-    }
-    default: /* unknown */ break;
-  }
-}
-void rose::ecs::deserialize(RecordingState& o, IDeserializer& s) {
-  char str[64];
-  deserialize(str, s);
-  rose::hash_value h = rose::hash(str);
-  switch (h) {
-  case rose::hash("Inactive"): o = RecordingState::Inactive; break;
-  case rose::hash("RecordingStart"): o = RecordingState::RecordingStart; break;
-  case rose::hash("Recording"): o = RecordingState::Recording; break;
-  case rose::hash("RecordingStop"): o = RecordingState::RecordingStop; break;
-  case rose::hash("ReplayingStart"): o = RecordingState::ReplayingStart; break;
-  case rose::hash("Replaying"): o = RecordingState::Replaying; break;
-  case rose::hash("ReplayingSeek"): o = RecordingState::ReplayingSeek; break;
-  case rose::hash("ReplayingStop"): o = RecordingState::ReplayingStop; break;
-  default: /*unknown value*/ break;
-  }
-}
-rose::hash_value       rose::hash(const RecordingState& o) {
   return static_cast<rose::hash_value>(o);
 }
 
@@ -572,12 +436,14 @@ namespace rose::reflection {
 bool operator==(const World &lhs, const World &rhs) {
   return
     rose_parser_equals(lhs.cubePosition, rhs.cubePosition) &&
+    rose_parser_equals(lhs.currentStick, rhs.currentStick) &&
     rose_parser_equals(lhs.ballPosition, rhs.ballPosition) &&
     rose_parser_equals(lhs.ballVelocity, rhs.ballVelocity) &&
-    rose_parser_equals(lhs.currentStick, rhs.currentStick) &&
+    rose_parser_equals(lhs.ballColor, rhs.ballColor) &&
     rose_parser_equals(lhs.random, rhs.random) &&
     rose_parser_equals(lhs.points, rhs.points) &&
     rose_parser_equals(lhs.lifes, rhs.lifes) &&
+    rose_parser_equals(lhs.lifes2, rhs.lifes2) &&
     rose_parser_equals(lhs.previous_pad_event, rhs.previous_pad_event) &&
     rose_parser_equals(lhs.state, rhs.state) &&
     rose_parser_equals(lhs.stones, rhs.stones) ;
@@ -586,12 +452,14 @@ bool operator==(const World &lhs, const World &rhs) {
 bool operator!=(const World &lhs, const World &rhs) {
   return
     !rose_parser_equals(lhs.cubePosition, rhs.cubePosition) ||
+    !rose_parser_equals(lhs.currentStick, rhs.currentStick) ||
     !rose_parser_equals(lhs.ballPosition, rhs.ballPosition) ||
     !rose_parser_equals(lhs.ballVelocity, rhs.ballVelocity) ||
-    !rose_parser_equals(lhs.currentStick, rhs.currentStick) ||
+    !rose_parser_equals(lhs.ballColor, rhs.ballColor) ||
     !rose_parser_equals(lhs.random, rhs.random) ||
     !rose_parser_equals(lhs.points, rhs.points) ||
     !rose_parser_equals(lhs.lifes, rhs.lifes) ||
+    !rose_parser_equals(lhs.lifes2, rhs.lifes2) ||
     !rose_parser_equals(lhs.previous_pad_event, rhs.previous_pad_event) ||
     !rose_parser_equals(lhs.state, rhs.state) ||
     !rose_parser_equals(lhs.stones, rhs.stones) ;
@@ -601,18 +469,22 @@ void rose::ecs::serialize(World &o, ISerializer &s) {
   if(s.node_begin("World", rose::hash("World"), &o)) {
     s.key("cubePosition");
     serialize(o.cubePosition, s);
+    s.key("currentStick");
+    serialize(o.currentStick, s);
     s.key("ballPosition");
     serialize(o.ballPosition, s);
     s.key("ballVelocity");
     serialize(o.ballVelocity, s);
-    s.key("currentStick");
-    serialize(o.currentStick, s);
+    s.key("ballColor");
+    serialize(o.ballColor, s);
     s.key("random");
     serialize(o.random, s);
     s.key("points");
     serialize(o.points, s);
     s.key("lifes");
     serialize(o.lifes, s);
+    s.key("lifes2");
+    serialize(o.lifes2, s);
     s.key("previous_pad_event");
     serialize(o.previous_pad_event, s);
     s.key("state");
@@ -633,14 +505,17 @@ void rose::ecs::deserialize(World &o, IDeserializer &s) {
       case rose::hash("cubePosition"):
         deserialize(o.cubePosition, s);
         break;
+      case rose::hash("currentStick"):
+        deserialize(o.currentStick, s);
+        break;
       case rose::hash("ballPosition"):
         deserialize(o.ballPosition, s);
         break;
       case rose::hash("ballVelocity"):
         deserialize(o.ballVelocity, s);
         break;
-      case rose::hash("currentStick"):
-        deserialize(o.currentStick, s);
+      case rose::hash("ballColor"):
+        deserialize(o.ballColor, s);
         break;
       case rose::hash("random"):
         deserialize(o.random, s);
@@ -650,6 +525,9 @@ void rose::ecs::deserialize(World &o, IDeserializer &s) {
         break;
       case rose::hash("lifes"):
         deserialize(o.lifes, s);
+        break;
+      case rose::hash("lifes2"):
+        deserialize(o.lifes2, s);
         break;
       case rose::hash("previous_pad_event"):
         deserialize(o.previous_pad_event, s);
@@ -668,17 +546,21 @@ void rose::ecs::deserialize(World &o, IDeserializer &s) {
 rose::hash_value rose::hash(const World &o) {
   rose::hash_value h = rose::hash(o.cubePosition);
   h = rose::xor64(h);
+  h ^= rose::hash(o.currentStick);
+  h = rose::xor64(h);
   h ^= rose::hash(o.ballPosition);
   h = rose::xor64(h);
   h ^= rose::hash(o.ballVelocity);
   h = rose::xor64(h);
-  h ^= rose::hash(o.currentStick);
+  h ^= rose::hash(o.ballColor);
   h = rose::xor64(h);
   h ^= rose::hash(o.random);
   h = rose::xor64(h);
   h ^= rose::hash(o.points);
   h = rose::xor64(h);
   h ^= rose::hash(o.lifes);
+  h = rose::xor64(h);
+  h ^= rose::hash(o.lifes2);
   h = rose::xor64(h);
   h ^= rose::hash(o.previous_pad_event);
   h = rose::xor64(h);
@@ -693,7 +575,7 @@ namespace rose::reflection {
   const rose::reflection::TypeInfo & get_type_info<World>() {
     static rose::reflection::TypeInfo info = {
       /*             unique_id */ rose::hash("World"),
-      /*           member_hash */ 359572207206739926ULL,
+      /*           member_hash */ 6205194912455769452ULL,
       /*      memory_footprint */ sizeof(World),
       /*      memory_alignment */ 16,
       /*                  name */ "World",
@@ -701,169 +583,6 @@ namespace rose::reflection {
       /*   fp_default_destruct */ +[](void * ptr) { std::launder(reinterpret_cast<World*>(ptr))->~World(); },
       /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*std::launder(reinterpret_cast<World*>(ptr)), s); },
       /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*std::launder(reinterpret_cast<World*>(ptr)), d); }
-    };
-    return info;
-  }
-}
-
-///////////////////////////////////////////////////////////////////
-//  struct PadEventFrameTuple
-///////////////////////////////////////////////////////////////////
-bool operator==(const PadEventFrameTuple &lhs, const PadEventFrameTuple &rhs) {
-  return
-    rose_parser_equals(lhs.padEvent, rhs.padEvent) &&
-    rose_parser_equals(lhs.frame, rhs.frame) ;
-}
-
-bool operator!=(const PadEventFrameTuple &lhs, const PadEventFrameTuple &rhs) {
-  return
-    !rose_parser_equals(lhs.padEvent, rhs.padEvent) ||
-    !rose_parser_equals(lhs.frame, rhs.frame) ;
-}
-
-void rose::ecs::serialize(PadEventFrameTuple &o, ISerializer &s) {
-  if(s.node_begin("PadEventFrameTuple", rose::hash("PadEventFrameTuple"), &o)) {
-    s.key("padEvent");
-    serialize(o.padEvent, s);
-    s.key("frame");
-    serialize(o.frame, s);
-    s.node_end();
-  }
-  s.end();
-}
-
-void rose::ecs::deserialize(PadEventFrameTuple &o, IDeserializer &s) {
-  //implement me
-  //construct_defaults(o);
-
-  while (s.next_key()) {
-    switch (s.hash_key()) {
-      case rose::hash("padEvent"):
-        deserialize(o.padEvent, s);
-        break;
-      case rose::hash("frame"):
-        deserialize(o.frame, s);
-        break;
-      default: s.skip_key(); break;
-    }
-  }
-}
-
-rose::hash_value rose::hash(const PadEventFrameTuple &o) {
-  rose::hash_value h = rose::hash(o.padEvent);
-  h = rose::xor64(h);
-  h ^= rose::hash(o.frame);
-  return h;
-}
-
-namespace rose::reflection {
-  template <>
-  const rose::reflection::TypeInfo & get_type_info<PadEventFrameTuple>() {
-    static rose::reflection::TypeInfo info = {
-      /*             unique_id */ rose::hash("PadEventFrameTuple"),
-      /*           member_hash */ 7765748126551423679ULL,
-      /*      memory_footprint */ sizeof(PadEventFrameTuple),
-      /*      memory_alignment */ 16,
-      /*                  name */ "PadEventFrameTuple",
-      /*  fp_default_construct */ +[](void * ptr) { new (ptr) PadEventFrameTuple(); },
-      /*   fp_default_destruct */ +[](void * ptr) { std::launder(reinterpret_cast<PadEventFrameTuple*>(ptr))->~PadEventFrameTuple(); },
-      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*std::launder(reinterpret_cast<PadEventFrameTuple*>(ptr)), s); },
-      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*std::launder(reinterpret_cast<PadEventFrameTuple*>(ptr)), d); }
-    };
-    return info;
-  }
-}
-
-///////////////////////////////////////////////////////////////////
-//  struct WorldRecording
-///////////////////////////////////////////////////////////////////
-bool operator==(const WorldRecording &lhs, const WorldRecording &rhs) {
-  return
-    rose_parser_equals(lhs.startworld, rhs.startworld) &&
-    rose_parser_equals(lhs.replayFrame, rhs.replayFrame) &&
-    rose_parser_equals(lhs.totalFrames, rhs.totalFrames) &&
-    rose_parser_equals(lhs.padFrames, rhs.padFrames) &&
-    rose_parser_equals(lhs.state, rhs.state) ;
-}
-
-bool operator!=(const WorldRecording &lhs, const WorldRecording &rhs) {
-  return
-    !rose_parser_equals(lhs.startworld, rhs.startworld) ||
-    !rose_parser_equals(lhs.replayFrame, rhs.replayFrame) ||
-    !rose_parser_equals(lhs.totalFrames, rhs.totalFrames) ||
-    !rose_parser_equals(lhs.padFrames, rhs.padFrames) ||
-    !rose_parser_equals(lhs.state, rhs.state) ;
-}
-
-void rose::ecs::serialize(WorldRecording &o, ISerializer &s) {
-  if(s.node_begin("WorldRecording", rose::hash("WorldRecording"), &o)) {
-    s.key("startworld");
-    serialize(o.startworld, s);
-    s.key("replayFrame");
-    serialize(o.replayFrame, s);
-    s.key("totalFrames");
-    serialize(o.totalFrames, s);
-    s.key("padFrames");
-    serialize(o.padFrames, s);
-    s.key("state");
-    serialize(o.state, s);
-    s.node_end();
-  }
-  s.end();
-}
-
-void rose::ecs::deserialize(WorldRecording &o, IDeserializer &s) {
-  //implement me
-  //construct_defaults(o);
-
-  while (s.next_key()) {
-    switch (s.hash_key()) {
-      case rose::hash("startworld"):
-        deserialize(o.startworld, s);
-        break;
-      case rose::hash("replayFrame"):
-        deserialize(o.replayFrame, s);
-        break;
-      case rose::hash("totalFrames"):
-        deserialize(o.totalFrames, s);
-        break;
-      case rose::hash("padFrames"):
-        deserialize(o.padFrames, s);
-        break;
-      case rose::hash("state"):
-        deserialize(o.state, s);
-        break;
-      default: s.skip_key(); break;
-    }
-  }
-}
-
-rose::hash_value rose::hash(const WorldRecording &o) {
-  rose::hash_value h = rose::hash(o.startworld);
-  h = rose::xor64(h);
-  h ^= rose::hash(o.replayFrame);
-  h = rose::xor64(h);
-  h ^= rose::hash(o.totalFrames);
-  h = rose::xor64(h);
-  h ^= rose::hash(o.padFrames);
-  h = rose::xor64(h);
-  h ^= rose::hash(o.state);
-  return h;
-}
-
-namespace rose::reflection {
-  template <>
-  const rose::reflection::TypeInfo & get_type_info<WorldRecording>() {
-    static rose::reflection::TypeInfo info = {
-      /*             unique_id */ rose::hash("WorldRecording"),
-      /*           member_hash */ 15755819351817888067ULL,
-      /*      memory_footprint */ sizeof(WorldRecording),
-      /*      memory_alignment */ 16,
-      /*                  name */ "WorldRecording",
-      /*  fp_default_construct */ +[](void * ptr) { new (ptr) WorldRecording(); },
-      /*   fp_default_destruct */ +[](void * ptr) { std::launder(reinterpret_cast<WorldRecording*>(ptr))->~WorldRecording(); },
-      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*std::launder(reinterpret_cast<WorldRecording*>(ptr)), s); },
-      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*std::launder(reinterpret_cast<WorldRecording*>(ptr)), d); }
     };
     return info;
   }
