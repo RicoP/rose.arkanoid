@@ -287,7 +287,7 @@ ROSE_EXPORT void draw() {
     if(ImGui::Button("New Game")) {
         world.points = 0;
         world.random = rose::hash_from_clock();
-        world.state = WorldState::Paused;
+        world.state = WorldState::Running;
         reset_ball(world);
         new_game(world);
     }
