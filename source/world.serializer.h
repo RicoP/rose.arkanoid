@@ -15,10 +15,8 @@
 enum class                   StoneState : int ;
 const char * to_string(const StoneState &);
 namespace rose {
-  namespace ecs {
-    void      deserialize(StoneState &o, IDeserializer &s);
-    void        serialize(StoneState &o, ISerializer &s);
-  }
+  void      deserialize(StoneState &o, IDeserializer &s);
+  void        serialize(StoneState &o, ISerializer &s);
   template<>
   struct type_id<StoneState> {
     inline static hash_value VALUE = 11910806599994158533ULL;
@@ -31,10 +29,8 @@ namespace rose {
 enum class                   WorldState : int ;
 const char * to_string(const WorldState &);
 namespace rose {
-  namespace ecs {
-    void      deserialize(WorldState &o, IDeserializer &s);
-    void        serialize(WorldState &o, ISerializer &s);
-  }
+  void      deserialize(WorldState &o, IDeserializer &s);
+  void        serialize(WorldState &o, ISerializer &s);
   template<>
   struct type_id<WorldState> {
     inline static hash_value VALUE = 18364368338018397444ULL;
@@ -45,8 +41,6 @@ namespace rose {
 
 
 namespace rose {
-  namespace ecs {
-  }
   hash_value         hash(const Color &o);
   template<>
   struct type_id<Color> {
@@ -63,8 +57,6 @@ namespace rose::reflection {
 }
 
 namespace rose {
-  namespace ecs {
-  }
   hash_value         hash(const Vector3 &o);
   template<>
   struct type_id<Vector3> {
@@ -82,10 +74,8 @@ namespace rose::reflection {
 
 struct                Stone;
 namespace rose {
-  namespace ecs {
     void        serialize(Stone &o, ISerializer &s);
     void      deserialize(Stone &o, IDeserializer &s);
-  }
   hash_value         hash(const Stone &o);
   template<>
   struct type_id<Stone> {
@@ -103,10 +93,8 @@ namespace rose::reflection {
 
 struct                World;
 namespace rose {
-  namespace ecs {
     void        serialize(World &o, ISerializer &s);
     void      deserialize(World &o, IDeserializer &s);
-  }
   hash_value         hash(const World &o);
   template<>
   struct type_id<World> {
@@ -180,7 +168,7 @@ const char * to_string(const StoneState & e) {
         default: return "<UNKNOWN>";
     }
 }
-void rose::ecs::serialize(StoneState& o, ISerializer& s) {
+void rose::serialize(StoneState& o, ISerializer& s) {
   switch (o) {
     case StoneState::Alive: {
       char str[] = "Alive";
@@ -195,7 +183,7 @@ void rose::ecs::serialize(StoneState& o, ISerializer& s) {
     default: /* unknown */ break;
   }
 }
-void rose::ecs::deserialize(StoneState& o, IDeserializer& s) {
+void rose::deserialize(StoneState& o, IDeserializer& s) {
   char str[64];
   deserialize(str, s);
   rose::hash_value h = rose::hash(str);
@@ -217,7 +205,7 @@ const char * to_string(const WorldState & e) {
         default: return "<UNKNOWN>";
     }
 }
-void rose::ecs::serialize(WorldState& o, ISerializer& s) {
+void rose::serialize(WorldState& o, ISerializer& s) {
   switch (o) {
     case WorldState::NewGame: {
       char str[] = "NewGame";
@@ -237,7 +225,7 @@ void rose::ecs::serialize(WorldState& o, ISerializer& s) {
     default: /* unknown */ break;
   }
 }
-void rose::ecs::deserialize(WorldState& o, IDeserializer& s) {
+void rose::deserialize(WorldState& o, IDeserializer& s) {
   char str[64];
   deserialize(str, s);
   rose::hash_value h = rose::hash(str);
@@ -260,15 +248,11 @@ bool operator==(const Color &lhs, const Color &rhs) {
     rose_parser_equals(lhs.r, rhs.r) &&
     rose_parser_equals(lhs.g, rhs.g) &&
     rose_parser_equals(lhs.b, rhs.b) &&
-    rose_parser_equals(lhs.a, rhs.a) ;
+    rose_parser_equals(lhs.a, rhs.a);
 }
 
 bool operator!=(const Color &lhs, const Color &rhs) {
-  return
-    !rose_parser_equals(lhs.r, rhs.r) ||
-    !rose_parser_equals(lhs.g, rhs.g) ||
-    !rose_parser_equals(lhs.b, rhs.b) ||
-    !rose_parser_equals(lhs.a, rhs.a) ;
+  return !(lhs == rhs);
 }
 
 rose::hash_value rose::hash(const Color &o) {
@@ -293,8 +277,8 @@ namespace rose::reflection {
       /*                  name */ "Color",
       /*  fp_default_construct */ +[](void * ptr) { new (ptr) Color(); },
       /*   fp_default_destruct */ +[](void * ptr) { std::launder(reinterpret_cast<Color*>(ptr))->~Color(); },
-      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*std::launder(reinterpret_cast<Color*>(ptr)), s); },
-      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*std::launder(reinterpret_cast<Color*>(ptr)), d); }
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::serialize(*std::launder(reinterpret_cast<Color*>(ptr)), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::deserialize(*std::launder(reinterpret_cast<Color*>(ptr)), d); }
     };
     return info;
   }
@@ -307,14 +291,11 @@ bool operator==(const Vector3 &lhs, const Vector3 &rhs) {
   return
     rose_parser_equals(lhs.x, rhs.x) &&
     rose_parser_equals(lhs.y, rhs.y) &&
-    rose_parser_equals(lhs.z, rhs.z) ;
+    rose_parser_equals(lhs.z, rhs.z);
 }
 
 bool operator!=(const Vector3 &lhs, const Vector3 &rhs) {
-  return
-    !rose_parser_equals(lhs.x, rhs.x) ||
-    !rose_parser_equals(lhs.y, rhs.y) ||
-    !rose_parser_equals(lhs.z, rhs.z) ;
+  return !(lhs == rhs);
 }
 
 rose::hash_value rose::hash(const Vector3 &o) {
@@ -337,8 +318,8 @@ namespace rose::reflection {
       /*                  name */ "Vector3",
       /*  fp_default_construct */ +[](void * ptr) { new (ptr) Vector3(); },
       /*   fp_default_destruct */ +[](void * ptr) { std::launder(reinterpret_cast<Vector3*>(ptr))->~Vector3(); },
-      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*std::launder(reinterpret_cast<Vector3*>(ptr)), s); },
-      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*std::launder(reinterpret_cast<Vector3*>(ptr)), d); }
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::serialize(*std::launder(reinterpret_cast<Vector3*>(ptr)), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::deserialize(*std::launder(reinterpret_cast<Vector3*>(ptr)), d); }
     };
     return info;
   }
@@ -352,18 +333,14 @@ bool operator==(const Stone &lhs, const Stone &rhs) {
     rose_parser_equals(lhs.position, rhs.position) &&
     rose_parser_equals(lhs.size, rhs.size) &&
     rose_parser_equals(lhs.color, rhs.color) &&
-    rose_parser_equals(lhs.state, rhs.state) ;
+    rose_parser_equals(lhs.state, rhs.state);
 }
 
 bool operator!=(const Stone &lhs, const Stone &rhs) {
-  return
-    !rose_parser_equals(lhs.position, rhs.position) ||
-    !rose_parser_equals(lhs.size, rhs.size) ||
-    !rose_parser_equals(lhs.color, rhs.color) ||
-    !rose_parser_equals(lhs.state, rhs.state) ;
+  return !(lhs == rhs);
 }
 
-void rose::ecs::serialize(Stone &o, ISerializer &s) {
+void rose::serialize(Stone &o, ISerializer &s) {
   if(s.node_begin("Stone", rose::hash("Stone"), &o)) {
     s.key("position");
     serialize(o.position, s);
@@ -378,7 +355,7 @@ void rose::ecs::serialize(Stone &o, ISerializer &s) {
   s.end();
 }
 
-void rose::ecs::deserialize(Stone &o, IDeserializer &s) {
+void rose::deserialize(Stone &o, IDeserializer &s) {
   //implement me
   //construct_defaults(o);
 
@@ -423,8 +400,8 @@ namespace rose::reflection {
       /*                  name */ "Stone",
       /*  fp_default_construct */ +[](void * ptr) { new (ptr) Stone(); },
       /*   fp_default_destruct */ +[](void * ptr) { std::launder(reinterpret_cast<Stone*>(ptr))->~Stone(); },
-      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*std::launder(reinterpret_cast<Stone*>(ptr)), s); },
-      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*std::launder(reinterpret_cast<Stone*>(ptr)), d); }
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::serialize(*std::launder(reinterpret_cast<Stone*>(ptr)), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::deserialize(*std::launder(reinterpret_cast<Stone*>(ptr)), d); }
     };
     return info;
   }
@@ -446,26 +423,14 @@ bool operator==(const World &lhs, const World &rhs) {
     rose_parser_equals(lhs.lifes2, rhs.lifes2) &&
     rose_parser_equals(lhs.previous_pad_event, rhs.previous_pad_event) &&
     rose_parser_equals(lhs.state, rhs.state) &&
-    rose_parser_equals(lhs.stones, rhs.stones) ;
+    rose_parser_equals(lhs.stones, rhs.stones);
 }
 
 bool operator!=(const World &lhs, const World &rhs) {
-  return
-    !rose_parser_equals(lhs.cubePosition, rhs.cubePosition) ||
-    !rose_parser_equals(lhs.currentStick, rhs.currentStick) ||
-    !rose_parser_equals(lhs.ballPosition, rhs.ballPosition) ||
-    !rose_parser_equals(lhs.ballVelocity, rhs.ballVelocity) ||
-    !rose_parser_equals(lhs.ballColor, rhs.ballColor) ||
-    !rose_parser_equals(lhs.random, rhs.random) ||
-    !rose_parser_equals(lhs.points, rhs.points) ||
-    !rose_parser_equals(lhs.lifes, rhs.lifes) ||
-    !rose_parser_equals(lhs.lifes2, rhs.lifes2) ||
-    !rose_parser_equals(lhs.previous_pad_event, rhs.previous_pad_event) ||
-    !rose_parser_equals(lhs.state, rhs.state) ||
-    !rose_parser_equals(lhs.stones, rhs.stones) ;
+  return !(lhs == rhs);
 }
 
-void rose::ecs::serialize(World &o, ISerializer &s) {
+void rose::serialize(World &o, ISerializer &s) {
   if(s.node_begin("World", rose::hash("World"), &o)) {
     s.key("cubePosition");
     serialize(o.cubePosition, s);
@@ -496,7 +461,7 @@ void rose::ecs::serialize(World &o, ISerializer &s) {
   s.end();
 }
 
-void rose::ecs::deserialize(World &o, IDeserializer &s) {
+void rose::deserialize(World &o, IDeserializer &s) {
   //implement me
   //construct_defaults(o);
 
@@ -581,8 +546,8 @@ namespace rose::reflection {
       /*                  name */ "World",
       /*  fp_default_construct */ +[](void * ptr) { new (ptr) World(); },
       /*   fp_default_destruct */ +[](void * ptr) { std::launder(reinterpret_cast<World*>(ptr))->~World(); },
-      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::ecs::serialize(*std::launder(reinterpret_cast<World*>(ptr)), s); },
-      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::ecs::deserialize(*std::launder(reinterpret_cast<World*>(ptr)), d); }
+      /*          fp_serialize */ +[](void * ptr, ISerializer & s) { ::rose::serialize(*std::launder(reinterpret_cast<World*>(ptr)), s); },
+      /*        fp_deserialize */ +[](void * ptr, IDeserializer & d) { ::rose::deserialize(*std::launder(reinterpret_cast<World*>(ptr)), d); }
     };
     return info;
   }
