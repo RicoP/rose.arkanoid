@@ -50,7 +50,7 @@
                 "world.serializer.h"
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}/source",
             },
             "group": {
                 "kind": "build",
@@ -69,7 +69,7 @@
                 "-o", ".build\\${workspaceFolderBasename}.dll",
             ],
             "options": {
-                "cwd": "${fileDirname}\\..",
+                "cwd": "${workspaceFolder}",
             },
             "group": {
                 "kind": "build",

@@ -6,10 +6,10 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/source",
                 "${workspaceFolder}/../include/",
-                "${workspaceFolder}/../imgui/",
-                "${workspaceFolder}/../roselib/include/",
-                "${workspaceFolder}/../premake-comppp/include/",
-                "${workspaceFolder}/../raylib/src"
+                "${workspaceFolder}/../rose.binaries/rose.dependencies/imgui/",
+                "${workspaceFolder}/../rose.binaries/rose.dependencies/roselib/include/",
+                "${workspaceFolder}/../rose.binaries/rose.dependencies/premake-comppp/include/",
+                "${workspaceFolder}/../rose.binaries/rose.dependencies/raylib/src"
             ],
             "defines": [
                 "_DEBUG",

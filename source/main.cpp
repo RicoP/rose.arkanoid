@@ -296,7 +296,7 @@ ROSE_EXPORT void draw() {
     ImGui::Separator();
 
     ImguiSerializer serializer;
-    rose::ecs::serialize(world, serializer);
+    rose::serialize(world, serializer);
 
     //BeginDrawing();
     {
